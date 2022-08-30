@@ -6,36 +6,30 @@ import pathlib
 import importlib.util
 
 
-# setup util function
-def module_from_file(module_name, file_location):
-    spec = importlib.util.spec_from_file_location(module_name, file_location)
-    assert spec is not None, f"failed to load module {module_name} at {file_location}"
-    module = importlib.util.module_from_spec(spec)
-    assert spec.loader is not None, f"ModuleSpec.loader is None for {module_name} at {file_location}"
-    spec.loader.exec_module(module)
-    return module
-
-
 # get setup.py location
 here = pathlib.Path(__file__).parent.resolve()
 long_description = (here / "README.md").read_text(encoding="utf-8")
 
 # import from location
-setup_ext = module_from_file("setup_ext", here / "src" / "setup_ext" / "__init__.py")
-sys.modules["setup_ext"] = setup_ext
-setuptools_wrap = module_from_file("setup_ext.setuptools_wrap", here / "src" / "setup_ext" / "setuptools_wrap.py")
-meta_build = module_from_file("setup_ext.meta_build", here / "src" / "setup_ext" / "meta_build.py")
-cmake_extension = module_from_file("setup_ext.cmake_extension", here / "src" / "setup_ext" / "cmake_extension.py")
+sys.path.insert(0, str(here / "src"))
+import setup_ext
+from setup_ext import setuptools_wrap, meta_build, cmake_clib, cmake_extension
 
+sys.path.pop(0)
 
 # current packages
 packages = [
     "tcomplex",
 ]
 
-
-# ext
+# clib & ext
+import dep_spdlog
 import nanobind
+
+libraries = [
+    cmake_clib.CMakeClib("libtcomplex", str(here / "src" / "libtcomplex")),
+]
+ext_modules = []
 
 setuptools_wrap.setup(
     name="tcomplex",
@@ -56,6 +50,6 @@ setuptools_wrap.setup(
         "build_clib": meta_build.MetaBuildClib,
         "build_ext": meta_build.MetaBuildExt,
     },
-    libraries=[],
-    ext_modules=[],
+    libraries=libraries,
+    ext_modules=ext_modules,
 )
