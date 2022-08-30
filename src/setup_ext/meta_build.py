@@ -5,7 +5,19 @@ from . import cmake_extension
 
 # TODO: mata-build-clib
 class MetaBuildClib(build_clib):
-    pass
+    def check_library_list(self, libraries):
+        if libraries is None:
+            return
+        return super().check_library_list(libraries)
+
+    def get_source_files(self):
+        if self.libraries is None:
+            return []
+        return super().get_source_files()
+
+    def run(self):
+        res = super().run()
+        return res
 
 
 # extend cmdclasses

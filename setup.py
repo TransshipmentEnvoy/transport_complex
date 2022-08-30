@@ -53,7 +53,9 @@ setuptools_wrap.setup(
     packages=packages,
     # cmdclass
     cmdclass={
+        "build_clib": meta_build.MetaBuildClib,
         "build_ext": meta_build.MetaBuildExt,
     },
+    libraries=[],
     ext_modules=[],
 )
