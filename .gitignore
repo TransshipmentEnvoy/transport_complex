@@ -160,6 +160,8 @@ cython_debug/
 .idea/
 
 # requirements.txt (temporary)
+# when in dev use a file contains local path
+/pyproject.toml
 /requirements.in
 /requirements.txt
 /requirements_dev.in
