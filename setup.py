@@ -31,6 +31,9 @@ libraries = [
         "libtcomplex",
         sourcedir=str(here / "src" / "libtcomplex"),
         targetdir="tcomplex",
+        cmake_configure_argdef={
+            "spdlog_ROOT": dep_spdlog.pkg_root_dir(),
+        },
     ),
 ]
 ext_modules = []
