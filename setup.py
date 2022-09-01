@@ -27,7 +27,11 @@ import dep_spdlog
 import nanobind
 
 libraries = [
-    cmake_clib.CMakeClib("libtcomplex", str(here / "src" / "libtcomplex")),
+    cmake_clib.CMakeClib(
+        "libtcomplex",
+        sourcedir=str(here / "src" / "libtcomplex"),
+        targetdir="tcomplex",
+    ),
 ]
 ext_modules = []
 

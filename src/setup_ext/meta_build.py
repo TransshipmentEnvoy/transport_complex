@@ -1,11 +1,14 @@
 from setuptools.command.build_clib import build_clib
 from setuptools.command.build_ext import build_ext
+from distutils.errors import DistutilsSetupError
 import os
 import logging
 from . import cmake_clib, cmake_extension
 
 
 _logger_clib = logging.getLogger("setup_ext.MetaBuildClib")
+
+
 # TODO: mata-build-clib
 class MetaBuildClib(build_clib):
     def check_library_list(self, libraries):
@@ -15,7 +18,7 @@ class MetaBuildClib(build_clib):
         libraries_ = []
         for lib_item in libraries:
             if isinstance(lib_item, cmake_clib.CMakeClib):
-                _logger_clib.warning("detect cmake clib: %s at %s", lib_item.name, lib_item.sourcedir)
+                pass
             else:
                 libraries_.append(lib_item)
 
@@ -24,13 +27,60 @@ class MetaBuildClib(build_clib):
     def get_source_files(self):
         if self.libraries is None:
             return []
-        return super().get_source_files()
+
+        self.check_library_list(self.libraries)
+
+        filenames = []
+        for lib_item in self.libraries:
+            if isinstance(lib_item, cmake_clib.CMakeClib):
+                pass  # TODO: append source
+            else:
+                (lib_name, build_info) = lib_item
+                sources = build_info.get("sources")
+                if sources is None or not isinstance(sources, (list, tuple)):
+                    raise DistutilsSetupError(
+                        "in 'libraries' option (library '%s'), "
+                        "'sources' must be present and must be "
+                        "a list of source filenames" % lib_name
+                    )
+
+                filenames.extend(sources)
+        return filenames
 
     def build_libraries(self, libraries) -> None:
         libraries_ = []
         for lib_item in libraries:
             if isinstance(lib_item, cmake_clib.CMakeClib):
-                pass
+                _logger_clib.info("detect cmake clib: %s at %s", lib_item.name, lib_item.sourcedir)
+
+                # get whether is inplace build
+                build_ext = self.get_finalized_command("build_ext")
+                inplace = build_ext.inplace
+
+                # get libdir (default is under package root)
+                if not inplace:
+                    lib_dir = os.path.normcase(
+                        os.path.normpath(os.path.abspath(os.path.join(build_ext.build_lib, lib_item.targetdir)))
+                    )
+                else:
+                    build_py = self.get_finalized_command("build_py")
+                    package_prefix = os.path.abspath(build_py.get_package_dir(""))
+                    lib_dir = os.path.normcase(
+                        os.path.normpath(os.path.abspath(os.path.join(package_prefix, lib_item.targetdir)))
+                    )
+
+                build_temp = os.path.abspath(os.path.join(self.build_temp, "cmake_clib"))
+                _logger_clib.info("build cmake clib: %s at %s", lib_item.name, build_temp)
+                _logger_clib.info("build cmake clib: %s to %s", lib_item.name, lib_dir)
+                cmake_clib.build_clib(
+                    lib_item,
+                    lib_dir,
+                    build_temp=build_temp,
+                    compiler=self.compiler,
+                    debug=self.debug,
+                    plat_name=build_ext.plat_name,
+                    parallel=build_ext.parallel,
+                )
             else:
                 libraries_.append(lib_item)
 
