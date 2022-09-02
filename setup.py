@@ -41,6 +41,7 @@ ext_modules = [
         "tcomplex._if",
         sourcedir=str(here / "src" / "tcomplex_if"),
         cmake_configure_argdef={
+            "nanobind_ROOT": nanobind.cmake_dir(),
             "libtcomplex_ROOT": cmake_if.PathPrefixBuildLib("tcomplex/libtcomplex"),
         },
     )
