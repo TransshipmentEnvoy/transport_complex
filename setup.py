@@ -13,7 +13,7 @@ long_description = (here / "README.md").read_text(encoding="utf-8")
 # import from location
 sys.path.insert(0, str(here / "src"))
 import setup_ext
-from setup_ext import setuptools_wrap, meta_build, cmake_clib, cmake_extension
+from setup_ext import setuptools_wrap, meta_build, cmake_clib, cmake_extension, cmake_if
 
 sys.path.pop(0)
 
@@ -30,13 +30,21 @@ libraries = [
     cmake_clib.CMakeClib(
         "libtcomplex",
         sourcedir=str(here / "src" / "libtcomplex"),
-        targetdir="tcomplex",
+        targetdir="tcomplex/libtcomplex",
         cmake_configure_argdef={
             "spdlog_ROOT": dep_spdlog.pkg_root_dir(),
         },
     ),
 ]
-ext_modules = []
+ext_modules = [
+    cmake_extension.CMakeExtension(
+        "tcomplex._if",
+        sourcedir=str(here / "src" / "tcomplex_if"),
+        cmake_configure_argdef={
+            "libtcomplex_ROOT": cmake_if.PathPrefixBuildLib("tcomplex/libtcomplex"),
+        },
+    )
+]
 
 setuptools_wrap.setup(
     name="tcomplex",

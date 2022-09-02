@@ -47,6 +47,19 @@ class MetaBuildClib(build_clib):
                 filenames.extend(sources)
         return filenames
 
+    def get_library_names(self):
+        if self.libraries is None:
+            return None
+
+        lib_names = []
+        for lib_item in self.libraries:
+            if isinstance(lib_item, cmake_clib.CMakeClib):
+                pass
+            else:
+                (lib_name, build_info) = lib_item
+                lib_names.append(lib_name)
+        return lib_names
+
     def build_libraries(self, libraries) -> None:
         libraries_ = []
         for lib_item in libraries:
@@ -59,14 +72,15 @@ class MetaBuildClib(build_clib):
 
                 # get libdir (default is under package root)
                 if not inplace:
+                    build_lib = os.path.abspath(build_ext.build_lib)
                     lib_dir = os.path.normcase(
                         os.path.normpath(os.path.abspath(os.path.join(build_ext.build_lib, lib_item.targetdir)))
                     )
                 else:
                     build_py = self.get_finalized_command("build_py")
-                    package_prefix = os.path.abspath(build_py.get_package_dir(""))
+                    build_lib = os.path.abspath(build_py.get_package_dir(""))
                     lib_dir = os.path.normcase(
-                        os.path.normpath(os.path.abspath(os.path.join(package_prefix, lib_item.targetdir)))
+                        os.path.normpath(os.path.abspath(os.path.join(build_lib, lib_item.targetdir)))
                     )
 
                 build_temp = os.path.abspath(os.path.join(self.build_temp, "cmake_clib"))
@@ -76,6 +90,7 @@ class MetaBuildClib(build_clib):
                     lib_item,
                     lib_dir,
                     build_temp=build_temp,
+                    build_lib=build_lib,
                     compiler=self.compiler,
                     debug=self.debug,
                     plat_name=build_ext.plat_name,
@@ -96,6 +111,7 @@ class MetaBuildExt(build_ext):
                 ext=ext,
                 extdir=extdir,
                 build_temp=self.build_temp,
+                build_lib=self.build_lib,
                 compiler=self.compiler,
                 debug=self.debug,
                 plat_name=self.plat_name,
