@@ -68,7 +68,7 @@ class MetaBuildClib(build_clib):
 
                 # get whether is inplace build
                 build_ext = self.get_finalized_command("build_ext")
-                inplace = build_ext.inplace
+                inplace = build_ext.inplace or build_ext.editable_mode
 
                 # get libdir (default is under package root)
                 if not inplace:
@@ -107,11 +107,19 @@ class MetaBuildExt(build_ext):
     def build_extension(self, ext) -> None:
         if isinstance(ext, cmake_extension.CMakeExtension):
             extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
+
+            inplace = self.inplace or self.editable_mode
+            if not inplace:
+                build_lib = self.build_lib
+            else:
+                build_py = self.get_finalized_command("build_py")
+                build_lib = os.path.abspath(build_py.get_package_dir(""))
+
             cmake_extension.build_extension(
                 ext=ext,
                 extdir=extdir,
                 build_temp=self.build_temp,
-                build_lib=self.build_lib,
+                build_lib=build_lib,
                 compiler=self.compiler,
                 debug=self.debug,
                 plat_name=self.plat_name,

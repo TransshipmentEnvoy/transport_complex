@@ -6,6 +6,7 @@ import sys
 from typing import Optional, MutableMapping, Any
 
 from .cmake_if import parse_config
+from distutils.errors import DistutilsSetupError
 
 import logging
 
@@ -82,7 +83,9 @@ def build_clib(
     )
     with configure_process.stdout:
         _log_subprocess_output(configure_process.stdout)
-    configure_process.wait()
+    ret = configure_process.wait()
+    if ret != 0:
+        raise DistutilsSetupError(f"failed to configure clib!")
 
     _logger_cmake_clib.info("> build: %s", shlex.join(["cmake", "--build", "."] + build_arg))
     build_process = subprocess.Popen(
@@ -90,7 +93,9 @@ def build_clib(
     )
     with build_process.stdout:
         _log_subprocess_output(build_process.stdout)
-    build_process.wait()
+    ret = build_process.wait()
+    if ret != 0:
+        raise DistutilsSetupError(f"failed to build clib!")
 
     _logger_cmake_clib.info("> install: %s", shlex.join(["cmake", "--install", "."] + install_arg))
     install_process = subprocess.Popen(
@@ -98,6 +103,8 @@ def build_clib(
     )
     with install_process.stdout:
         _log_subprocess_output(install_process.stdout)
-    install_process.wait()
+    ret = install_process.wait()
+    if ret != 0:
+        raise DistutilsSetupError(f"failed to install clib!")
 
     _logger_cmake_clib.info("conclude cmake clib: %s ===", clib.name)

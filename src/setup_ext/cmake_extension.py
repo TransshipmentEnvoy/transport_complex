@@ -7,6 +7,7 @@ from typing import Optional, MutableMapping, Any
 from setuptools import Extension
 
 from .cmake_if import parse_config
+from distutils.errors import DistutilsSetupError
 
 import logging
 
@@ -95,7 +96,9 @@ def build_extension(
     )
     with configure_process.stdout:
         _log_subprocess_output(configure_process.stdout)
-    configure_process.wait()
+    ret = configure_process.wait()
+    if ret != 0:
+        raise DistutilsSetupError(f"failed to configure ext!")
 
     _logger_cmake_ext.info("> build: %s", shlex.join(["cmake", "--build", "."] + build_arg))
     build_process = subprocess.Popen(
@@ -103,7 +106,9 @@ def build_extension(
     )
     with build_process.stdout:
         _log_subprocess_output(build_process.stdout)
-    build_process.wait()
+    ret = build_process.wait()
+    if ret != 0:
+        raise DistutilsSetupError(f"failed to build ext!")
 
     _logger_cmake_ext.info("> install: %s", shlex.join(["cmake", "--install", "."] + install_arg))
     install_process = subprocess.Popen(
@@ -111,6 +116,8 @@ def build_extension(
     )
     with install_process.stdout:
         _log_subprocess_output(install_process.stdout)
-    install_process.wait()
+    ret = install_process.wait()
+    if ret != 0:
+        raise DistutilsSetupError(f"failed to install ext!")
 
     _logger_cmake_ext.info("conclude cmake ext: %s ===", ext.name)
