@@ -13,7 +13,9 @@ long_description = (here / "README.md").read_text(encoding="utf-8")
 # import from location
 sys.path.insert(0, str(here / "src"))
 import setup_ext
-from setup_ext import setuptools_wrap, meta_build, cmake_clib, cmake_extension, cmake_if
+from setup_ext import setuptools_wrap, meta_build
+from setup_ext import cmake_clib, cmake_extension, cmake_if
+from setup_ext import develop_warp
 
 sys.path.pop(0)
 
@@ -64,6 +66,7 @@ setuptools_wrap.setup(
     packages=packages,
     # cmdclass
     cmdclass={
+        "develop": develop_warp.CustomDevelop,
         "build_clib": meta_build.MetaBuildClib,
         "build_ext": meta_build.MetaBuildExt,
     },
