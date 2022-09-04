@@ -29,5 +29,5 @@ def gdb_spawn():
 
 
 if __name__ == "__main__":
-    ret = gdb_spawn()
+    ret = spawn()
     exit(ret)

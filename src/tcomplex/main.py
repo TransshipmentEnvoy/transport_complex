@@ -8,6 +8,7 @@ def main():
     from . import _if
 
     print(_if)
+    _if.run()
 
 
 if __name__ == "__main__":
