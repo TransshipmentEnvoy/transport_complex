@@ -128,3 +128,22 @@ class MetaBuildExt(build_ext):
         else:
             # fallback to default
             super().build_extension(ext)
+
+    def copy_extensions_to_source(self):
+        super().copy_extensions_to_source()
+
+        build_py = self.get_finalized_command("build_py")
+        for ext in self.extensions:
+            if isinstance(ext, cmake_extension.CMakeExtension):
+                inplace_file, regular_file = self._get_inplace_equivalent(build_py, ext)
+                inplace_dir = os.path.dirname(inplace_file)
+                regular_dir = os.path.dirname(regular_file)
+
+                # scan extra_lib under regular_dir, copy them together
+                for lib_file in ext.extra_lib:
+                    regular_lib_file = os.path.join(regular_dir, lib_file)
+                    inplace_lib_file = os.path.join(inplace_dir, lib_file)
+                    if os.path.exists(regular_lib_file) or not ext.optional:
+                        self.copy_file(regular_lib_file, inplace_lib_file, level=self.verbose)
+            else:
+                pass
