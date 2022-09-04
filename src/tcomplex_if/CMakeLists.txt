@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.17...3.24)
 
 project(tcomplex_if)
 
+find_package(libtcomplex REQUIRED)
+
 # python
 if(MSVC)
     find_package(PythonInterp)
@@ -17,6 +19,7 @@ nanobind_add_module(
     _if
     NB_SHARED
     bind.cpp)
+target_link_libraries(_if PRIVATE libtcomplex::tcomplex)
 
 install(TARGETS nanobind LIBRARY DESTINATION .)
 install(TARGETS _if LIBRARY DESTINATION .)
