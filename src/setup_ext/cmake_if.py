@@ -111,6 +111,8 @@ def parse_config(
         if parallel:
             # CMake 3.12+ only.
             build_arg += [f"-j{parallel}"]
+        else:
+            build_arg += [f"-j{os.cpu_count()}"]
     else:
         build_arg += [f"-j{build_argdef['CMAKE_BUILD_PARALLEL_LEVEL']}"]
 
