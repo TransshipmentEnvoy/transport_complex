@@ -5,24 +5,26 @@ import sys
 
 
 def spawn():
-    setup_env()
+    env = os.environ.copy()
+    setup_env(env)
 
     # spawn the game process
     main_process = subprocess.Popen(
         [sys.executable, "-m", "tcomplex.main"] + sys.argv[1:],
-        env=os.environ.copy(),
+        env=env,
     )
     ret = main_process.wait()
     return ret
 
 
 def gdb_spawn():
-    setup_env()
+    env = os.environ.copy()
+    setup_env(env)
 
     # spawn the game process
     main_process = subprocess.Popen(
         ["gdb", "-q", "--args", sys.executable, "-m", "tcomplex.main"] + sys.argv[1:],
-        env=os.environ.copy(),
+        env=env,
     )
     ret = main_process.wait()
     return ret
