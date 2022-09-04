@@ -2,14 +2,29 @@ import setuptools
 from setuptools.command.develop import develop
 from distutils import log
 
+
 class CustomDevelop(develop):
+    user_options = develop.user_options + [
+        ("debug", "g", "compile/link with debugging information"),
+    ]
+
+    def initialize_options(self) -> None:
+        super().initialize_options()
+        self.debug = None
+
+    def finalize_options(self) -> None:
+        super().finalize_options()
+
     def install_for_development(self):
-        self.run_command('egg_info')
+        self.run_command("egg_info")
 
         # Build extensions in-place
-        self.reinitialize_command('build_ext', inplace=1)
-        self.run_command('build_clib')
-        self.run_command('build_ext')
+        self.reinitialize_command("build_ext", inplace=1)
+        if self.debug:
+            self.reinitialize_command("build_clib", debug=1)
+            self.reinitialize_command("build_ext", inplace=1, debug=1)
+        self.run_command("build_clib")
+        self.run_command("build_ext")
 
         if setuptools.bootstrap_install_from:
             self.easy_install(setuptools.bootstrap_install_from)
