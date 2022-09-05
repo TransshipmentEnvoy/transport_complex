@@ -168,11 +168,12 @@ cython_debug/
 /requirements_dev.txt
 
 # custom
-/.editor/
-/.vscode/
+/.editor
+/.vscode
 /.dir-locals.el
 /ext/*
 !/ext/.gitkeep
 
 # develop
-/src/tcomplex/libtcomplex/**
+/src/tcomplex/*.so
+/src/tcomplex/*.so.*
