@@ -38,7 +38,7 @@ libraries = [
     cmake_clib.CMakeClib(
         "libtcomplex",
         sourcedir=str(here / "src" / "libtcomplex"),
-        targetdir=path_expand.PathPrefixBuildTemp("prefix/libtcomplex"),
+        targetdir=path_expand.PathPrefixBuildLib("tcomplex"),
         cmake_configure_argdef={
             "spdlog_ROOT": path_expand.PathPrefixBuildTemp("prefix/spdlog"),
         },
@@ -50,15 +50,9 @@ ext_modules = [
         sourcedir=str(here / "src" / "tcomplex_if"),
         cmake_configure_argdef={
             "nanobind_ROOT": nanobind.cmake_dir(),
-            "spdlog_ROOT": path_expand.PathPrefixBuildTemp("prefix/spdlog"),
-            "libtcomplex_ROOT": path_expand.PathPrefixBuildTemp("prefix/libtcomplex"),
+            "libtcomplex_ROOT": path_expand.PathPrefixBuildLib("tcomplex/libtcomplex"),
         },
-        extra_lib=[
-            "libnanobind.so",
-            "libtcomplex.so",
-            "libspdlog.so.1",
-            "libspdlog.so.1.10.0",
-        ],
+        extra_lib=["libnanobind.so"],
     )
 ]
 

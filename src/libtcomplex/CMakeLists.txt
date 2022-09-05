@@ -3,9 +3,6 @@ cmake_minimum_required(VERSION 3.17...3.24)
 # project
 project(libtcomplex)
 
-include(GNUInstallDirs)
-set(CMAKE_INSTALL_DOCDIR ${CMAKE_INSTALL_DATAROOTDIR}/doc/${PROJECT_NAME}) # explicitly set DOCDIR location each time
-
 find_package(spdlog REQUIRED)
 message(STATUS "use spdlog: ${spdlog_DIR}")
 
@@ -17,22 +14,27 @@ set_target_properties(tcomplex PROPERTIES CXX_EXTENSION OFF)
 target_sources(tcomplex PRIVATE
     src/lib.cpp
     include/libtcomplex/lib.h)
-target_link_libraries(tcomplex PUBLIC 
+target_link_libraries(tcomplex PRIVATE 
     spdlog::spdlog)
 target_include_directories(tcomplex PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/libtcomplex/include>)
 set_target_properties(tcomplex PROPERTIES
     INSTALL_RPATH "\$ORIGIN")
 
 # install
-install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/libtcomplex/include)
 install(TARGETS tcomplex
     EXPORT libtcomplex
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    RUNTIME DESTINATION .
+    LIBRARY DESTINATION .
+    ARCHIVE DESTINATION .)
 install(EXPORT libtcomplex
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/libtcomplex
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/libtcomplex/lib/cmake/libtcomplex
     NAMESPACE libtcomplex::
     FILE libtcomplex-config.cmake)
+
+# install dep
+install(IMPORTED_RUNTIME_ARTIFACTS spdlog::spdlog
+    RUNTIME DESTINATION .
+    LIBRARY DESTINATION .)
