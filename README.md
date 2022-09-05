@@ -27,3 +27,11 @@
 
 3. Sync environment
 
+## Development Plan
+
++ [ ] get rid of `dep_spdlog` and spwan new process for launch
++ [ ] bundle `spdlog` as `clib`
++ [ ] handle the rpath
+   1. for packaged wheels
+   2. for develop build
++ [ ] (windows) handle dll searching (runtime `PATH` handling should work)
