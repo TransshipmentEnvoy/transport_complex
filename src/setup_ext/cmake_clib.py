@@ -6,6 +6,7 @@ import sys
 from typing import Optional, MutableMapping, Any
 
 from .cmake_if import parse_config
+from . import path_expand
 from distutils.errors import DistutilsSetupError
 
 import logging
@@ -30,7 +31,10 @@ class CMakeClib:
     ) -> None:
         self.name = name
         self.sourcedir = os.path.normcase(os.path.normpath(os.path.abspath(sourcedir)))
-        self.targetdir = os.path.normcase(os.path.normpath(targetdir))  # could be abs/rel
+        if isinstance(targetdir, path_expand.SCAN_LIST):
+            self.targetdir = targetdir
+        else:
+            self.targetdir = os.path.normcase(os.path.normpath(targetdir))  # could be abs/rel
 
         self.cmake_generator = cmake_generator
         if cmake_configure_argdef is None:
@@ -53,9 +57,11 @@ def build_clib(
 ):
     _logger_cmake_clib.info("build cmake clib: %s >>>", clib.name)
 
+    path_expand.expand_prefix_argdef(
+        clib.cmake_configure_argdef, buildlibdir=build_lib, buildtempdir=build_temp
+    )
     cmake_arg, build_arg, install_arg = parse_config(
         installdir=clibdir,
-        buildlibdir=build_lib,
         cmake_generator=clib.cmake_generator,
         cmake_configure_argdef=clib.cmake_configure_argdef,
         cmake_build_argdef=clib.cmake_build_argdef,
@@ -66,6 +72,7 @@ def build_clib(
     )
 
     # create build dir
+    build_temp = os.path.abspath(os.path.join(build_temp, "cmake_clib"))
     build_temp = os.path.join(build_temp, clib.name)
     if os.path.exists(build_temp):
         if os.path.exists(os.path.join(build_temp, "CMakeCache.txt")):

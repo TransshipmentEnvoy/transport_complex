@@ -3,6 +3,9 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
 
+#include <memory>
+#include <string_view>
+
 #include <libtcomplex/lib.h>
 
 namespace libtcomplex {
@@ -26,15 +29,30 @@ void setup_logging() {
                 spdlog::async_overflow_policy::block));
         
     } catch (const spdlog::spdlog_ex& ex) {
-        //
+        fprintf(stderr, "error! %s\n", ex.what());
     }
 }
+
+// get logger
+std::shared_ptr<spdlog::logger> get_logger(const std::string_view name) {
+    auto root = spdlog::get("root");
+    if (root == nullptr) {
+        setup_logging();
+        root = spdlog::get("root");
+    }
+
+    // create a new logger using same sink with root
+}
+
 
 int run() {
     setup_logging();
 
     const char *str = "hello, world";
     spdlog::info("{}!!", str);
+
+    auto root = spdlog::get("root");
+    auto tmp = get_logger("tmp");
 
     return 0;
 }

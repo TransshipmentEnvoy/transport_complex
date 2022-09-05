@@ -3,7 +3,7 @@ from setuptools.command.build_ext import build_ext
 from distutils.errors import DistutilsSetupError
 import os
 import logging
-from . import cmake_clib, cmake_extension
+from . import cmake_clib, cmake_extension, path_expand
 
 
 _logger_clib = logging.getLogger("setup_ext.MetaBuildClib")
@@ -70,20 +70,32 @@ class MetaBuildClib(build_clib):
                 build_ext = self.get_finalized_command("build_ext")
                 inplace = build_ext.inplace or build_ext.editable_mode
 
-                # get libdir (default is under package root)
+                # get build_temp
+                build_temp = self.build_temp
+
+                # get build_lib
                 if not inplace:
                     build_lib = os.path.abspath(build_ext.build_lib)
-                    lib_dir = os.path.normcase(
-                        os.path.normpath(os.path.abspath(os.path.join(build_ext.build_lib, lib_item.targetdir)))
-                    )
                 else:
                     build_py = self.get_finalized_command("build_py")
                     build_lib = os.path.abspath(build_py.get_package_dir(""))
-                    lib_dir = os.path.normcase(
-                        os.path.normpath(os.path.abspath(os.path.join(build_lib, lib_item.targetdir)))
-                    )
 
-                build_temp = os.path.abspath(os.path.join(self.build_temp, "cmake_clib"))
+                # get lib_dir
+                if isinstance(lib_item.targetdir, path_expand.SCAN_LIST):
+                    lib_dir = path_expand.expand_path(lib_item.targetdir, build_lib, build_temp)
+                elif os.path.isabs(lib_item.targetdir):
+                    lib_dir = os.path.normcase(os.path.normpath(lib_item.targetdir))
+                else:
+                    if not inplace:
+                        lib_dir = os.path.normcase(
+                            os.path.normpath(os.path.abspath(os.path.join(build_ext.build_lib, lib_item.targetdir)))
+                        )
+                    else:
+                        lib_dir = os.path.normcase(
+                            os.path.normpath(os.path.abspath(os.path.join(build_lib, lib_item.targetdir)))
+                        )
+
+                # call if
                 _logger_clib.info("build cmake clib: %s at %s", lib_item.name, build_temp)
                 _logger_clib.info("build cmake clib: %s to %s", lib_item.name, lib_dir)
                 cmake_clib.build_clib(

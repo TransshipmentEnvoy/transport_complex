@@ -16,23 +16,8 @@ PLAT_TO_CMAKE = {
 }
 
 
-class PathPrefixBuildLib:
-    def __init__(self, offset) -> None:
-        self.offset = os.path.normcase(os.path.normpath(offset))
-
-
-def expand_prefix(argdef: MutableMapping[str, str], buildlibdir: str):
-    for k in argdef:
-        v = argdef[k]
-        if isinstance(v, PathPrefixBuildLib):
-            offset = v.offset
-            new_v = os.path.normcase(os.path.normpath(os.path.abspath(os.path.join(buildlibdir, offset))))
-            argdef[k] = new_v
-
-
 def parse_config(
     installdir: str,
-    buildlibdir: str,
     cmake_generator: Optional[str],
     cmake_configure_argdef: Mapping[str, str],
     cmake_build_argdef: Mapping[str, str],
@@ -44,8 +29,6 @@ def parse_config(
     # copy argdef
     configure_argdef: MutableMapping[str, str] = deepcopy(cmake_configure_argdef)
     build_argdef: MutableMapping[str, str] = deepcopy(cmake_build_argdef)
-    expand_prefix(configure_argdef, buildlibdir)
-    expand_prefix(build_argdef, buildlibdir)
 
     # required for auto-detection & inclusion of auxiliary "native" libs
     if not installdir.endswith(os.path.sep):
