@@ -21,6 +21,9 @@ target_include_directories(tcomplex PUBLIC
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/libtcomplex/include>)
 set_target_properties(tcomplex PROPERTIES
     INSTALL_RPATH "\$ORIGIN")
+# TODO: change symbol visibility in the future
+set_target_properties(tcomplex PROPERTIES
+    WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
 
 # install
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/libtcomplex/include)
@@ -28,7 +31,7 @@ install(TARGETS tcomplex
     EXPORT libtcomplex
     RUNTIME DESTINATION .
     LIBRARY DESTINATION .
-    ARCHIVE DESTINATION .)
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/libtcomplex/lib)
 install(EXPORT libtcomplex
     DESTINATION ${CMAKE_INSTALL_PREFIX}/libtcomplex/lib/cmake/libtcomplex
     NAMESPACE libtcomplex::
