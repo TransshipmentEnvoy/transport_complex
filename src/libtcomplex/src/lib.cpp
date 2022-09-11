@@ -42,6 +42,7 @@ std::shared_ptr<spdlog::logger> get_logger(const std::string_view name) {
     }
 
     // create a new logger using same sink with root
+    return root;
 }
 
 
