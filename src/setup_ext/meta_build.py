@@ -155,7 +155,7 @@ class MetaBuildExt(build_ext):
                 for lib_file in ext.extra_lib:
                     regular_lib_file = os.path.join(regular_dir, lib_file)
                     inplace_lib_file = os.path.join(inplace_dir, lib_file)
-                    if os.path.exists(regular_lib_file) or not ext.optional:
+                    if os.path.exists(regular_lib_file):
                         self.copy_file(regular_lib_file, inplace_lib_file, level=self.verbose)
             else:
                 pass

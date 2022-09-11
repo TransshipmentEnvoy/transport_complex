@@ -52,7 +52,7 @@ ext_modules = [
             "nanobind_ROOT": nanobind.cmake_dir(),
             "libtcomplex_ROOT": path_expand.PathPrefixBuildLib("tcomplex/libtcomplex"),
         },
-        extra_lib=["libnanobind.so"],
+        extra_lib=["libnanobind.so", "nanobind.dll"],
     )
 ]
 
