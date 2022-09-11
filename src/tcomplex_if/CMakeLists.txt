@@ -23,5 +23,7 @@ target_link_libraries(_if PRIVATE libtcomplex::tcomplex)
 set_target_properties(_if PROPERTIES
     INSTALL_RPATH "\$ORIGIN")
 
-install(TARGETS nanobind LIBRARY DESTINATION .)
+install(TARGETS nanobind 
+    RUNTIME DESTINATION .
+    LIBRARY DESTINATION .)
 install(TARGETS _if LIBRARY DESTINATION .)
