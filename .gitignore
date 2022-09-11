@@ -178,3 +178,4 @@ cython_debug/
 /src/tcomplex/libtcomplex/**
 /src/tcomplex/*.so
 /src/tcomplex/*.so.*
+/src/tcomplex/*.dll
