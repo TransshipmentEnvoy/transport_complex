@@ -74,6 +74,7 @@ def parse_config(
 
         # Multi-config generators have a different way to specify configs
         if not single_config:
+            configure_argdef.pop("CMAKE_BUILD_TYPE")
             build_arg += ["--config", build_type]
             install_arg += ["--config", build_type]
     if cmake_generator is not None:
