@@ -40,7 +40,11 @@ def parse_config(
     # determine build type. use explicit setting first, then check self.debug
     if "CMAKE_BUILD_TYPE" not in configure_argdef:
         if debug:
-            configure_argdef["CMAKE_BUILD_TYPE"] = "Debug"
+            if compiler.compiler_type != "msvc":
+                configure_argdef["CMAKE_BUILD_TYPE"] = "Debug"
+            else:
+                # FIXME: workaround
+                configure_argdef["CMAKE_BUILD_TYPE"] = "RelWithDebInfo"
         else:
             configure_argdef["CMAKE_BUILD_TYPE"] = "Release"
     build_type = configure_argdef["CMAKE_BUILD_TYPE"]
@@ -54,6 +58,7 @@ def parse_config(
         # 3.15+.
         if cmake_generator is None:
             try:
+                # FIXME: should use system ninja, rather rely on the ninja in env
                 import ninja  # noqa: F401
 
                 cmake_generator = "Ninja"
