@@ -7,7 +7,6 @@ from typing import Optional, MutableMapping, Any
 from setuptools import Extension
 
 from .cmake_if import parse_config
-from . import path_expand
 from distutils.errors import DistutilsSetupError
 
 import logging
@@ -64,7 +63,6 @@ def build_extension(
     ext: CMakeExtension,
     extdir: str,
     build_temp: str,
-    build_lib: str,
     compiler: Any,
     debug: Any,
     plat_name: Any,
@@ -72,9 +70,6 @@ def build_extension(
 ):
     _logger_cmake_ext.info("build cmake ext: %s >>>", ext.name)
 
-    path_expand.expand_prefix_argdef(
-        ext.cmake_configure_argdef, buildlibdir=build_lib, buildtempdir=build_temp
-    )
     cmake_arg, build_arg, install_arg = parse_config(
         installdir=extdir,
         cmake_generator=ext.cmake_generator,

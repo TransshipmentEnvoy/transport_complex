@@ -16,7 +16,7 @@ import setup_ext
 from setup_ext import setuptools_wrap, meta_build
 from setup_ext import cmake_clib, cmake_extension, cmake_if
 from setup_ext import develop_warp
-from setup_ext import path_expand
+from setup_ext import path_util
 
 sys.path.pop(0)
 
@@ -32,15 +32,15 @@ libraries = [
     cmake_clib.CMakeClib(
         "dep_spdlog",
         sourcedir=str(here / "src" / "buildsys" / "dep" / "spdlog"),
-        targetdir=path_expand.PathPrefixBuildTemp("prefix/spdlog"),
+        targetdir=path_util.PathPrefixBuildTemp("prefix/spdlog"),
         cmake_configure_argdef={},
     ),
     cmake_clib.CMakeClib(
         "libtcomplex",
         sourcedir=str(here / "src" / "libtcomplex"),
-        targetdir=path_expand.PathPrefixBuildLib("tcomplex"),
+        targetdir=path_util.PathPrefixBuildLib("tcomplex"),
         cmake_configure_argdef={
-            "spdlog_ROOT": path_expand.PathPrefixBuildTemp("prefix/spdlog"),
+            "spdlog_ROOT": path_util.PathPrefixBuildTemp("prefix/spdlog"),
         },
     ),
 ]
@@ -50,7 +50,7 @@ ext_modules = [
         sourcedir=str(here / "src" / "tcomplex_if"),
         cmake_configure_argdef={
             "nanobind_ROOT": nanobind.cmake_dir(),
-            "libtcomplex_ROOT": path_expand.PathPrefixBuildLib("tcomplex/libtcomplex"),
+            "libtcomplex_ROOT": path_util.PathPrefixBuildLib("tcomplex/libtcomplex"),
         },
         extra_lib=["libnanobind.so", "nanobind.dll"],
     )

@@ -6,7 +6,7 @@ import sys
 from typing import Optional, MutableMapping, Any
 
 from .cmake_if import parse_config
-from . import path_expand
+from . import path_util
 from distutils.errors import DistutilsSetupError
 
 import logging
@@ -31,7 +31,7 @@ class CMakeClib:
     ) -> None:
         self.name = name
         self.sourcedir = os.path.normcase(os.path.normpath(os.path.abspath(sourcedir)))
-        if isinstance(targetdir, path_expand.SCAN_LIST):
+        if type(targetdir) in path_util.SCAN_MAP:
             self.targetdir = targetdir
         else:
             self.targetdir = os.path.normcase(os.path.normpath(targetdir))  # could be abs/rel
@@ -49,7 +49,6 @@ def build_clib(
     clib: CMakeClib,
     clibdir: str,
     build_temp: str,
-    build_lib: str,
     compiler: Any,
     debug: Any,
     plat_name: Any,
@@ -57,9 +56,6 @@ def build_clib(
 ):
     _logger_cmake_clib.info("build cmake clib: %s >>>", clib.name)
 
-    path_expand.expand_prefix_argdef(
-        clib.cmake_configure_argdef, buildlibdir=build_lib, buildtempdir=build_temp
-    )
     cmake_arg, build_arg, install_arg = parse_config(
         installdir=clibdir,
         cmake_generator=clib.cmake_generator,

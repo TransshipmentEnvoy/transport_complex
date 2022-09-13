@@ -29,9 +29,9 @@
 
 ## Development Plan
 
-+ [ ] get rid of `dep_spdlog` and spwan new process for launch
-+ [ ] bundle `spdlog` as `clib`
-+ [ ] handle the rpath
++ [x] get rid of `dep_spdlog` and spwan new process for launch
++ [x] bundle `spdlog` as `clib`
++ [x] handle the rpath
    1. for packaged wheels
    2. for develop build
 + [ ] (windows) handle dll searching (runtime `PATH` handling should work)

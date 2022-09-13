@@ -3,13 +3,13 @@ from setuptools.command.build_ext import build_ext
 from distutils.errors import DistutilsSetupError
 import os
 import logging
-from . import cmake_clib, cmake_extension, path_expand
+from . import cmake_clib, cmake_extension, path_util
 
 
 _logger_clib = logging.getLogger("setup_ext.MetaBuildClib")
 
 
-# TODO: mata-build-clib
+# mata-build-clib
 class MetaBuildClib(build_clib):
     def check_library_list(self, libraries):
         if libraries is None:
@@ -66,72 +66,74 @@ class MetaBuildClib(build_clib):
             if isinstance(lib_item, cmake_clib.CMakeClib):
                 _logger_clib.info("detect cmake clib: %s at %s", lib_item.name, lib_item.sourcedir)
 
-                # get whether is inplace build
-                build_ext = self.get_finalized_command("build_ext")
-                inplace = build_ext.inplace or build_ext.editable_mode
-
-                # get build_temp
-                build_temp = self.build_temp
-
-                # get build_lib
-                if not inplace:
-                    build_lib = os.path.abspath(build_ext.build_lib)
-                else:
-                    build_py = self.get_finalized_command("build_py")
-                    build_lib = os.path.abspath(build_py.get_package_dir(""))
-
-                # get lib_dir
-                if isinstance(lib_item.targetdir, path_expand.SCAN_LIST):
-                    lib_dir = path_expand.expand_path(lib_item.targetdir, build_lib, build_temp)
-                elif os.path.isabs(lib_item.targetdir):
-                    lib_dir = os.path.normcase(os.path.normpath(lib_item.targetdir))
-                else:
-                    if not inplace:
-                        lib_dir = os.path.normcase(
-                            os.path.normpath(os.path.abspath(os.path.join(build_ext.build_lib, lib_item.targetdir)))
-                        )
-                    else:
-                        lib_dir = os.path.normcase(
-                            os.path.normpath(os.path.abspath(os.path.join(build_lib, lib_item.targetdir)))
-                        )
+                build_temp = self.path_essential.temp_dir
+                lib_dir = self.prefix_expand.expand_path(lib_item.targetdir)
+                lib_dir = self.prefix_expand.prefix_path(lib_dir)
+                self.prefix_expand.expand_prefix_argdef(lib_item.cmake_configure_argdef)
 
                 # call if
+                cmd_build_ext = self.get_finalized_command("build_ext")
                 _logger_clib.info("build cmake clib: %s at %s", lib_item.name, build_temp)
                 _logger_clib.info("build cmake clib: %s to %s", lib_item.name, lib_dir)
                 cmake_clib.build_clib(
                     lib_item,
                     lib_dir,
                     build_temp=build_temp,
-                    build_lib=build_lib,
                     compiler=self.compiler,
                     debug=self.debug,
-                    plat_name=build_ext.plat_name,
-                    parallel=build_ext.parallel,
+                    plat_name=cmd_build_ext.plat_name,
+                    parallel=cmd_build_ext.parallel,
                 )
             else:
                 libraries_.append(lib_item)
 
         return super().build_libraries(libraries_)
 
+    def run(self):
+        # get inplace build info
+        cmd_build_ext = self.get_finalized_command("build_ext")
+        inplace = cmd_build_ext.inplace or cmd_build_ext.editable_mode
+
+        # setup essential path
+        # get build_temp
+        build_temp = self.build_temp
+
+        # get build_lib
+        if not inplace:
+            build_lib = os.path.abspath(cmd_build_ext.build_lib)
+        else:
+            cmd_build_py = self.get_finalized_command("build_py")
+            build_lib = os.path.abspath(cmd_build_py.get_package_dir(""))
+
+        # store path essential
+        self.path_essential = path_util.PathEssential(temp_dir=build_temp, prefix_dir=build_lib)
+
+        # setup prefix replacement mechaism
+        self.prefix_expand = path_util.PathExpand(self.path_essential)
+
+        # run!
+        res = super().run()
+
+        # cleanup
+        del self.prefix_expand
+        del self.path_essential
+
+        # return
+        return res
+
 
 # extend cmdclasses
 class MetaBuildExt(build_ext):
     def build_extension(self, ext) -> None:
         if isinstance(ext, cmake_extension.CMakeExtension):
+            # use setuptools provided extdir! this will auto do sep build in dev mode
             extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
 
-            inplace = self.inplace or self.editable_mode
-            if not inplace:
-                build_lib = self.build_lib
-            else:
-                build_py = self.get_finalized_command("build_py")
-                build_lib = os.path.abspath(build_py.get_package_dir(""))
-
+            self.prefix_expand.expand_prefix_argdef(ext.cmake_configure_argdef)
             cmake_extension.build_extension(
                 ext=ext,
                 extdir=extdir,
                 build_temp=self.build_temp,
-                build_lib=build_lib,
                 compiler=self.compiler,
                 debug=self.debug,
                 plat_name=self.plat_name,
@@ -159,3 +161,34 @@ class MetaBuildExt(build_ext):
                         self.copy_file(regular_lib_file, inplace_lib_file, level=self.verbose)
             else:
                 pass
+
+    def run(self):
+        # get inplace build info
+        inplace = self.inplace or self.editable_mode
+
+        # setup essential path
+        # get build_temp
+        build_temp = self.build_temp
+
+        # get build_lib
+        if not inplace:
+            build_lib = os.path.abspath(self.build_lib)
+        else:
+            cmd_build_py = self.get_finalized_command("build_py")
+            build_lib = os.path.abspath(cmd_build_py.get_package_dir(""))
+
+        # store path essential
+        self.path_essential = path_util.PathEssential(temp_dir=build_temp, prefix_dir=build_lib)
+
+        # setup prefix replacement mechaism
+        self.prefix_expand = path_util.PathExpand(self.path_essential)
+
+        # run!
+        res = super().run()
+
+        # cleanup
+        del self.prefix_expand
+        del self.path_essential
+
+        # return
+        return res
