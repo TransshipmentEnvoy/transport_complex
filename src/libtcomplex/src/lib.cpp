@@ -1,7 +1,7 @@
-#include <spdlog/spdlog.h>
 #include <spdlog/async.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/spdlog.h>
 
 #include <memory>
 #include <string_view>
@@ -22,29 +22,32 @@ void setup_logging() {
         file_sink->set_level(spdlog::level::trace);
 
         spdlog::set_default_logger(
-            std::make_shared<spdlog::async_logger>(
-                "root", 
-                spdlog::sinks_init_list({console_sink, file_sink}), 
-                spdlog::thread_pool(), 
-                spdlog::async_overflow_policy::block));
-        
-    } catch (const spdlog::spdlog_ex& ex) {
+            std::make_shared<spdlog::async_logger>("root", spdlog::sinks_init_list({console_sink, file_sink}),
+                                                   spdlog::thread_pool(), spdlog::async_overflow_policy::block));
+
+    } catch (const spdlog::spdlog_ex &ex) {
         fprintf(stderr, "error! %s\n", ex.what());
     }
 }
 
 // get logger
 std::shared_ptr<spdlog::logger> get_logger(const std::string_view name) {
-    auto root = spdlog::get("root");
-    if (root == nullptr) {
-        setup_logging();
-        root = spdlog::get("root");
+    auto logger = spdlog::get(std::string{name});
+    if (logger == nullptr) {
+        auto root = spdlog::get("root");
+        if (root == nullptr) {
+            setup_logging();
+            root = spdlog::get("root");
+        }
+        // create a new logger using same sink with root
+        auto &sinks = root->sinks();
+        logger = std::make_shared<spdlog::async_logger>(std::string{name}, sinks.begin(), sinks.end(),
+                                                        spdlog::thread_pool());
+        logger->set_level(root->level());
+        spdlog::register_logger(logger);
     }
-
-    // create a new logger using same sink with root
-    return root;
+    return logger;
 }
-
 
 int run() {
     setup_logging();
@@ -54,8 +57,9 @@ int run() {
 
     auto root = spdlog::get("root");
     auto tmp = get_logger("tmp");
+    tmp->info("{}!!", str);
 
     return 0;
 }
 
-}
+} // namespace libtcomplex
