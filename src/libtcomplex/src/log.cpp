@@ -31,15 +31,15 @@ std::shared_ptr<spdlog::logger> get_logger(const std::string_view name) {
     if (logger == nullptr) {
         auto root = spdlog::get("root");
         if (root == nullptr) {
-            setup_logging();
-            root = spdlog::get("root");
+            logger = nullptr;
+        } else {
+            // create a new logger using same sink with root
+            auto &sinks = root->sinks();
+            logger = std::make_shared<spdlog::async_logger>(std::string{name}, sinks.begin(), sinks.end(),
+                                                            spdlog::thread_pool());
+            logger->set_level(root->level());
+            spdlog::register_logger(logger);
         }
-        // create a new logger using same sink with root
-        auto &sinks = root->sinks();
-        logger = std::make_shared<spdlog::async_logger>(std::string{name}, sinks.begin(), sinks.end(),
-                                                        spdlog::thread_pool());
-        logger->set_level(root->level());
-        spdlog::register_logger(logger);
     }
     return logger;
 }
