@@ -13,6 +13,8 @@ set_target_properties(tcomplex PROPERTIES CXX_STANDARD 20)
 set_target_properties(tcomplex PROPERTIES CXX_EXTENSION OFF)
 target_sources(tcomplex PRIVATE
     src/lib.cpp
+    src/log.h
+    src/log.cpp
     include/libtcomplex/lib.h)
 target_link_libraries(tcomplex PRIVATE 
     spdlog::spdlog)

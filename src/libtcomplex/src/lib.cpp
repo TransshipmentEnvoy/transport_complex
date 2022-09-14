@@ -1,63 +1,29 @@
-#include <spdlog/async.h>
-#include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
-#include <memory>
-#include <string_view>
+#include <chrono>
+#include <thread>
 
 #include <libtcomplex/lib.h>
 
+#include "log.h"
+
 namespace libtcomplex {
 
-void setup_logging() {
-    try {
-        spdlog::init_thread_pool(8192, 1);
-
-        auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-        console_sink->set_level(spdlog::level::info);
-        console_sink->set_pattern("[multi_sink_example] [%^%l%$] %v");
-
-        auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("multisink.txt", true);
-        file_sink->set_level(spdlog::level::trace);
-
-        spdlog::set_default_logger(
-            std::make_shared<spdlog::async_logger>("root", spdlog::sinks_init_list({console_sink, file_sink}),
-                                                   spdlog::thread_pool(), spdlog::async_overflow_policy::block));
-
-    } catch (const spdlog::spdlog_ex &ex) {
-        fprintf(stderr, "error! %s\n", ex.what());
-    }
-}
-
-// get logger
-std::shared_ptr<spdlog::logger> get_logger(const std::string_view name) {
-    auto logger = spdlog::get(std::string{name});
-    if (logger == nullptr) {
-        auto root = spdlog::get("root");
-        if (root == nullptr) {
-            setup_logging();
-            root = spdlog::get("root");
-        }
-        // create a new logger using same sink with root
-        auto &sinks = root->sinks();
-        logger = std::make_shared<spdlog::async_logger>(std::string{name}, sinks.begin(), sinks.end(),
-                                                        spdlog::thread_pool());
-        logger->set_level(root->level());
-        spdlog::register_logger(logger);
-    }
-    return logger;
-}
-
 int run() {
-    setup_logging();
+    log::setup_logging();
 
     const char *str = "hello, world";
     spdlog::info("{}!!", str);
 
     auto root = spdlog::get("root");
-    auto tmp = get_logger("tmp");
-    tmp->info("{}!!", str);
+    auto tmp = log::get_logger("tmp");
+
+    for (int i = 0; i < 100; i++) {
+        tmp->info("{}  --", i);
+        spdlog::info("{}  ^^", 100 - i);
+        using namespace std::chrono_literals;
+        std::this_thread::sleep_for(100ms);
+    }
 
     return 0;
 }
