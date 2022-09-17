@@ -36,11 +36,18 @@ libraries = [
         cmake_configure_argdef={},
     ),
     cmake_clib.CMakeClib(
+        "dep_range-v3",
+        sourcedir=str(here / "src" / "buildsys" / "dep" / "range-v3"),
+        targetdir=path_util.PathPrefixBuildTemp("prefix/range-v3"),
+        cmake_configure_argdef={},
+    ),
+    cmake_clib.CMakeClib(
         "libtcomplex",
         sourcedir=str(here / "src" / "libtcomplex"),
         targetdir=path_util.PathPrefixBuildLib("tcomplex"),
         cmake_configure_argdef={
             "spdlog_ROOT": path_util.PathPrefixBuildTemp("prefix/spdlog"),
+            "range-v3_ROOT": path_util.PathPrefixBuildTemp("prefix/range-v3"),
         },
     ),
 ]
