@@ -5,11 +5,15 @@ project(libtcomplex)
 
 find_package(spdlog REQUIRED)
 message(STATUS "use spdlog: ${spdlog_DIR}")
+find_package(range-v3 REQUIRED)
+message(STATUS "use range-v3: ${range-v3_DIR}")
+find_package(fmt REQUIRED)
+message(STATUS "use fmt: ${fmt_DIR}")
 
 add_library(tcomplex SHARED)
 add_library(libtcomplex::tcomplex ALIAS tcomplex)
 set_target_properties(tcomplex PROPERTIES CXX_STANDARD_REQUIRED ON)
-set_target_properties(tcomplex PROPERTIES CXX_STANDARD 20)
+set_target_properties(tcomplex PROPERTIES CXX_STANDARD 23)
 set_target_properties(tcomplex PROPERTIES CXX_EXTENSION OFF)
 target_sources(tcomplex PRIVATE
     src/lib.cpp
@@ -17,7 +21,9 @@ target_sources(tcomplex PRIVATE
     src/log.cpp
     include/libtcomplex/lib.h)
 target_link_libraries(tcomplex PRIVATE 
-    spdlog::spdlog)
+    spdlog::spdlog
+    range-v3::range-v3
+    fmt::fmt)
 target_include_directories(tcomplex PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/libtcomplex/include>)

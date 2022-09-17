@@ -10,7 +10,7 @@
 namespace libtcomplex {
 
 int run() {
-    log::setup_logging();
+    log::reset_logging();
 
     const char *str = "hello, world";
     spdlog::info("{}!!", str);
@@ -18,12 +18,15 @@ int run() {
     auto root = spdlog::get("root");
     auto tmp = log::get_logger("tmp");
 
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 10; i++) {
         tmp->info("{}  --", i);
-        spdlog::info("{}  ^^", 100 - i);
+        spdlog::info("{}  ^^", 10 - i);
         using namespace std::chrono_literals;
         std::this_thread::sleep_for(100ms);
     }
+
+    log::reset_logging();
+    spdlog::info("{}!!", str);
 
     return 0;
 }
