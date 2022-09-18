@@ -48,6 +48,13 @@ libraries = [
         cmake_configure_argdef={},
     ),
     cmake_clib.CMakeClib(
+        "dep_robin-map",
+        sourcedir=str(here / "src" / "buildsys" / "dep" / "robin-map"),
+        targetdir=path_util.PathPrefixBuildTemp("prefix/robin-map"),
+        cmake_configure_argdef={},
+    ),
+    # main lib
+    cmake_clib.CMakeClib(
         "libtcomplex",
         sourcedir=str(here / "src" / "libtcomplex"),
         targetdir=path_util.PathPrefixBuildLib("tcomplex"),
@@ -55,6 +62,7 @@ libraries = [
             "spdlog_ROOT": path_util.PathPrefixBuildTemp("prefix/spdlog"),
             "range-v3_ROOT": path_util.PathPrefixBuildTemp("prefix/range-v3"),
             "fmt_ROOT": path_util.PathPrefixBuildTemp("prefix/fmt"),
+            "tsl-robin-map_ROOT": path_util.PathPrefixBuildTemp("prefix/robin-map"),
         },
     ),
 ]
