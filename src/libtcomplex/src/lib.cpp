@@ -25,6 +25,7 @@ int run() {
         std::this_thread::sleep_for(100ms);
     }
 
+    log::ref_log_type() = log::log_type_t::file_only;
     log::reset_logging();
     spdlog::info("{}!!", str);
 

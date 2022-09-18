@@ -5,6 +5,7 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 
 #include <mutex>
+#include <tsl/robin_map.h>
 
 namespace libtcomplex::log {
 log_type_t &ref_log_type() {
@@ -14,7 +15,7 @@ log_type_t &ref_log_type() {
 
 void reset_logging() {
     static std::mutex reset_mutex;
-    static std::unordered_map<std::string, spdlog::sink_ptr> sink_registry;
+    static tsl::robin_map<std::string, spdlog::sink_ptr> sink_registry;
     static bool thread_pool_inited = false;
 
     auto &log_type = ref_log_type();

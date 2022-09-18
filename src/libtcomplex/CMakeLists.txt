@@ -9,6 +9,8 @@ find_package(range-v3 REQUIRED)
 message(STATUS "use range-v3: ${range-v3_DIR}")
 find_package(fmt REQUIRED)
 message(STATUS "use fmt: ${fmt_DIR}")
+find_package(tsl-robin-map REQUIRED)
+message(STATUS "use tsl-robin-map: ${tsl-robin-map_DIR}")
 
 add_library(tcomplex SHARED)
 add_library(libtcomplex::tcomplex ALIAS tcomplex)
@@ -19,11 +21,16 @@ target_sources(tcomplex PRIVATE
     src/lib.cpp
     src/log.h
     src/log.cpp
+    src/opt.h
+    src/opt.cpp
+    src/ckpt.h
+    src/ckpt.cpp
     include/libtcomplex/lib.h)
 target_link_libraries(tcomplex PRIVATE 
     spdlog::spdlog
     range-v3::range-v3
-    fmt::fmt)
+    fmt::fmt
+    tsl::robin_map)
 target_include_directories(tcomplex PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/libtcomplex/include>)
