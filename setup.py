@@ -69,13 +69,21 @@ libraries = [
 ext_modules = [
     cmake_extension.CMakeExtension(
         "tcomplex.ext._if",
-        sourcedir=str(here / "src" / "tcomplex_if"),
+        sourcedir=str(here / "src" / "tcomplex_ext" / "if"),
         cmake_configure_argdef={
             "nanobind_ROOT": nanobind.cmake_dir(),
             "libtcomplex_ROOT": path_util.PathPrefixBuildLib("tcomplex/ext/libtcomplex"),
         },
         extra_lib=["libnanobind.so", "nanobind.dll"],
-    )
+    ),
+    cmake_extension.CMakeExtension(
+        "tcomplex.ext.log",
+        sourcedir=str(here / "src" / "tcomplex_ext" / "log"),
+        cmake_configure_argdef={
+            "nanobind_ROOT": nanobind.cmake_dir(),
+            "libtcomplex_ROOT": path_util.PathPrefixBuildLib("tcomplex/ext/libtcomplex"),
+        },
+    ),
 ]
 
 setuptools_wrap.setup(
