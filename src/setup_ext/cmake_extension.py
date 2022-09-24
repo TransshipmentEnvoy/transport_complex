@@ -38,7 +38,7 @@ class CMakeExtension(Extension):
         cmake_generator: Optional[str] = None,
         cmake_configure_argdef: Optional[MutableMapping[str, str]] = None,
         cmake_build_argdef: Optional[MutableMapping[str, str]] = None,
-        extra_lib: Optional[list[str]] = None
+        extra_lib: Optional[list[str]] = None,
     ):
         Extension.__init__(self, name, sources=[])
 
@@ -56,7 +56,7 @@ class CMakeExtension(Extension):
 
         if extra_lib is None:
             extra_lib = []
-        self.extra_lib = extra_lib # used in copy back library when setup develop
+        self.extra_lib = extra_lib  # used in copy back library when setup develop
 
 
 def build_extension(
@@ -84,10 +84,11 @@ def build_extension(
     # create build dir
     build_temp = os.path.join(build_temp, ext.name)
     if os.path.exists(build_temp):
-        if os.path.exists(os.path.join(build_temp, "CMakeCache.txt")):
-            os.remove(
-                os.path.join(build_temp, "CMakeCache.txt")
-            )  # the cached environment has gone, so remove the cache
+        # if os.path.exists(os.path.join(build_temp, "CMakeCache.txt")):
+        #     os.remove(
+        #         os.path.join(build_temp, "CMakeCache.txt")
+        #     )  # the cached environment has gone, so remove the cache
+        pass
     else:
         os.makedirs(build_temp)
 

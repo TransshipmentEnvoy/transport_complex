@@ -71,10 +71,11 @@ def build_clib(
     build_temp = os.path.abspath(os.path.join(build_temp, "cmake_clib"))
     build_temp = os.path.join(build_temp, clib.name)
     if os.path.exists(build_temp):
-        if os.path.exists(os.path.join(build_temp, "CMakeCache.txt")):
-            os.remove(
-                os.path.join(build_temp, "CMakeCache.txt")
-            )  # the cached environment has gone, so remove the cache
+        # if os.path.exists(os.path.join(build_temp, "CMakeCache.txt")):
+        #     os.remove(
+        #         os.path.join(build_temp, "CMakeCache.txt")
+        #     )  # the cached environment has gone, so remove the cache
+        pass
     else:
         os.makedirs(build_temp)
 

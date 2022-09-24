@@ -175,7 +175,7 @@ cython_debug/
 !/ext/.gitkeep
 
 # develop
-/src/tcomplex/libtcomplex/**
-/src/tcomplex/*.so
-/src/tcomplex/*.so.*
-/src/tcomplex/*.dll
+/src/tcomplex/ext/libtcomplex/**
+/src/tcomplex/**/*.so
+/src/tcomplex/**/*.so.*
+/src/tcomplex/**/*.dll
