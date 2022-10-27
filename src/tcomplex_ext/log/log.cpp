@@ -1,4 +1,4 @@
 #include <nanobind/nanobind.h>
 
-NB_MODULE(log, m) {
+NB_MODULE(_log, m) {
 }

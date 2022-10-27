@@ -79,7 +79,7 @@ ext_modules = [
         extra_lib=["libnanobind.so", "nanobind.dll"],
     ),
     cmake_extension.CMakeExtension(
-        "tcomplex.ext.log",
+        "tcomplex.ext._log",
         sourcedir=str(here / "src" / "tcomplex_ext" / "log"),
         cmake_configure_argdef={
             "nanobind_ROOT": nanobind.cmake_dir(),

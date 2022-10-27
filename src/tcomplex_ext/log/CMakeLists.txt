@@ -16,11 +16,11 @@ find_package(nanobind REQUIRED)
 
 # nanobind extension
 nanobind_add_module(
-    log
+    _log
     NB_SHARED
     log.cpp)
-target_link_libraries(log PRIVATE libtcomplex::tcomplex)
-set_target_properties(log PROPERTIES
+target_link_libraries(_log PRIVATE libtcomplex::tcomplex)
+set_target_properties(_log PROPERTIES
     INSTALL_RPATH "\$ORIGIN")
 
-install(TARGETS log LIBRARY DESTINATION .)
+install(TARGETS _log LIBRARY DESTINATION .)
