@@ -16,6 +16,9 @@ public:
 private:
     tsl::robin_map<std::string, std::unique_ptr<cfg_t>> cfg_store;
 };
+
+// global registry: for game startup/shutdown/logging/search_path
+registry_t &ref_global_registry();
 } // namespace libtcomplex::opt
 
 #endif

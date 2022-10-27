@@ -13,4 +13,9 @@ void registry_t::store(std::string_view key, std::unique_ptr<cfg_t> cfg) {
     cfg_store[std::string{key}] = std::move(cfg);
 }
 
+registry_t &ref_registry() {
+    static registry_t reg;
+    return reg;
+}
+
 } // namespace libtcomplex::opt
