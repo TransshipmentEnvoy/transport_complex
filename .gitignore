@@ -162,10 +162,10 @@ cython_debug/
 # requirements.txt (temporary)
 # when in dev use a file contains local path
 /pyproject.toml
-/requirements.in
 /requirements.txt
-/requirements_dev.in
 /requirements_dev.txt
+/requirements_loc.in
+/requirements_loc.txt
 
 # custom
 /.editor
