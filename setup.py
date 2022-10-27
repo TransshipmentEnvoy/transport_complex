@@ -33,7 +33,9 @@ libraries = [
         "dep_spdlog",
         sourcedir=str(here / "src" / "buildsys" / "dep" / "spdlog"),
         targetdir=path_util.PathPrefixBuildTemp("prefix/spdlog"),
-        cmake_configure_argdef={},
+        cmake_configure_argdef={
+            "DEP_SPDLOG_FETCHCONTENT": "ON",
+        },
     ),
     cmake_clib.CMakeClib(
         "dep_range-v3",
