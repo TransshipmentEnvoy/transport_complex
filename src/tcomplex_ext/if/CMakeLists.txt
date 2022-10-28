@@ -20,10 +20,22 @@ nanobind_add_module(
     NB_SHARED
     bind.cpp)
 target_link_libraries(_if PRIVATE libtcomplex::tcomplex)
-set_target_properties(_if PROPERTIES
-    INSTALL_RPATH "\$ORIGIN")
+if (DEFINED DESIGNATED_RPATH)
+    message(STATUS "use designated rpath ${DESIGNATED_RPATH}")
+    set_target_properties(_if PROPERTIES
+        INSTALL_RPATH "${DESIGNATED_RPATH}")
+else()
+    set_target_properties(_if PROPERTIES
+        INSTALL_RPATH "\$ORIGIN")
+endif()
 
-install(TARGETS nanobind 
-    RUNTIME DESTINATION .
-    LIBRARY DESTINATION .)
+if (DEFINED NANOBIND_OFFSET)
+    install(TARGETS nanobind 
+        RUNTIME DESTINATION "${NANOBIND_OFFSET}"
+        LIBRARY DESTINATION "${NANOBIND_OFFSET}")
+else()
+    install(TARGETS nanobind 
+        RUNTIME DESTINATION .
+        LIBRARY DESTINATION .)
+endif()
 install(TARGETS _if LIBRARY DESTINATION .)

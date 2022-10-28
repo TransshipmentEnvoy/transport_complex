@@ -16,7 +16,7 @@ import setup_ext
 from setup_ext import setuptools_wrap, meta_build
 from setup_ext import cmake_clib, cmake_extension, cmake_if
 from setup_ext import develop_warp
-from setup_ext import path_util
+from setup_ext import path_util, rpath_util
 
 sys.path.pop(0)
 
@@ -28,6 +28,7 @@ packages = [
 # clib & ext
 import nanobind
 
+# region ====== clib >>>
 libraries = [
     cmake_clib.CMakeClib(
         "dep_spdlog",
@@ -55,38 +56,50 @@ libraries = [
         targetdir=path_util.PathPrefixBuildTemp("prefix/robin-map"),
         cmake_configure_argdef={},
     ),
-    # main lib
-    cmake_clib.CMakeClib(
-        "libtcomplex",
-        sourcedir=str(here / "src" / "libtcomplex"),
-        targetdir=path_util.PathPrefixBuildLib("tcomplex/ext"),
-        cmake_configure_argdef={
-            "spdlog_ROOT": path_util.PathPrefixBuildTemp("prefix/spdlog"),
-            "range-v3_ROOT": path_util.PathPrefixBuildTemp("prefix/range-v3"),
-            "fmt_ROOT": path_util.PathPrefixBuildTemp("prefix/fmt"),
-            "tsl-robin-map_ROOT": path_util.PathPrefixBuildTemp("prefix/robin-map"),
-        },
-    ),
 ]
+# main lib
+MAIN_LIB_TARGET = "tcomplex/lib"
+main_lib = cmake_clib.CMakeClib(
+    "libtcomplex",
+    sourcedir=str(here / "src" / "libtcomplex"),
+    targetdir=path_util.PathPrefixBuildLib(MAIN_LIB_TARGET),
+    cmake_configure_argdef={
+        "spdlog_ROOT": path_util.PathPrefixBuildTemp("prefix/spdlog"),
+        "range-v3_ROOT": path_util.PathPrefixBuildTemp("prefix/range-v3"),
+        "fmt_ROOT": path_util.PathPrefixBuildTemp("prefix/fmt"),
+        "tsl-robin-map_ROOT": path_util.PathPrefixBuildTemp("prefix/robin-map"),
+    },
+)
+libraries.append(main_lib)
+# endregion === clib <<<
+
+# region ====== ext >>>
 ext_modules = [
     cmake_extension.CMakeExtension(
-        "tcomplex.ext._if",
+        "tcomplex._if",
         sourcedir=str(here / "src" / "tcomplex_ext" / "if"),
         cmake_configure_argdef={
             "nanobind_ROOT": nanobind.cmake_dir(),
-            "libtcomplex_ROOT": path_util.PathPrefixBuildLib("tcomplex/ext/libtcomplex"),
+            "libtcomplex_ROOT": path_util.PathPrefixBuildLib("tcomplex/lib/libtcomplex"),
+            "DESIGNATED_RPATH": rpath_util.compute_rpath("tcomplex._if", MAIN_LIB_TARGET),
+            "NANOBIND_OFFSET": rpath_util.compute_relpath("tcomplex._if", MAIN_LIB_TARGET),
         },
-        extra_lib=["libnanobind.so", "nanobind.dll"],
+        extra_lib={
+            "libnanobind.so": rpath_util.compute_relpath("tcomplex._if", MAIN_LIB_TARGET),
+            "nanobind.dll": rpath_util.compute_relpath("tcomplex._if", MAIN_LIB_TARGET),
+        },
     ),
     cmake_extension.CMakeExtension(
-        "tcomplex.ext._log",
+        "tcomplex.util.upkeep._log",
         sourcedir=str(here / "src" / "tcomplex_ext" / "log"),
         cmake_configure_argdef={
             "nanobind_ROOT": nanobind.cmake_dir(),
-            "libtcomplex_ROOT": path_util.PathPrefixBuildLib("tcomplex/ext/libtcomplex"),
+            "libtcomplex_ROOT": path_util.PathPrefixBuildLib("tcomplex/lib/libtcomplex"),
+            "DESIGNATED_RPATH": rpath_util.compute_rpath("tcomplex.util.upkeep._log", MAIN_LIB_TARGET),
         },
     ),
 ]
+# endregion === ext <<<
 
 setuptools_wrap.setup(
     name="tcomplex",

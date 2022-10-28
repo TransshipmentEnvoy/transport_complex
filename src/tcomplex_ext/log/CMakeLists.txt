@@ -20,7 +20,13 @@ nanobind_add_module(
     NB_SHARED
     log.cpp)
 target_link_libraries(_log PRIVATE libtcomplex::tcomplex)
-set_target_properties(_log PROPERTIES
-    INSTALL_RPATH "\$ORIGIN")
+if (DEFINED DESIGNATED_RPATH)
+    message(STATUS "use designated rpath ${DESIGNATED_RPATH}")
+    set_target_properties(_log PROPERTIES
+        INSTALL_RPATH "${DESIGNATED_RPATH}")
+else()
+    set_target_properties(_log PROPERTIES
+        INSTALL_RPATH "\$ORIGIN")
+endif()
 
 install(TARGETS _log LIBRARY DESTINATION .)
