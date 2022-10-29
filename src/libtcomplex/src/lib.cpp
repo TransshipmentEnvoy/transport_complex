@@ -32,4 +32,8 @@ int run() {
     return 0;
 }
 
+void init() { log::reset_logging(); }
+
+void deinit() {}
+
 } // namespace libtcomplex

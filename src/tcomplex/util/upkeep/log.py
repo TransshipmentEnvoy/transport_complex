@@ -11,6 +11,9 @@ try:
 except ImportError:
     colored = keep_fist_fn
 
+# import ext
+from . import _log
+
 
 # module local logger
 _logger = logging.getLogger(__name__)
@@ -19,6 +22,7 @@ _logger = logging.getLogger(__name__)
 _root_logger = logging.getLogger()
 _console_handler: Optional[logging.Handler] = None
 _file_handler: dict[str, logging.Handler] = {}
+_ext_handler: Optional[logging.Handler] = None
 _queue_handler = None  # for multiprocessing
 
 
@@ -81,6 +85,26 @@ def disable_file(filename):
     _root_logger.removeHandler(file_handler)
 
 
+def enable_ext(formatter=None):
+    global _ext_handler
+
+    if _ext_handler is not None:
+        return
+
+    _ext_handler = ExtHandler()
+    _root_logger.addHandler(_ext_handler)
+
+
+def disable_ext():
+    global _ext_handler
+
+    if _ext_handler is None:
+        return
+
+    _root_logger.removeHandler(_ext_handler)
+    _ext_handler = None
+
+
 def configure_mp_main():
     # TODO
     pass
@@ -94,6 +118,19 @@ def configure_mp_worker():
 def deconfigure_mp_main():
     # TODO
     pass
+
+
+# log handler
+class ExtHandler(logging.Handler):
+    def __init__(self) -> None:
+        super().__init__()
+        if not _log.check_init():
+            raise Exception("logging not initialized in main library!")
+
+        self.ctx = _log.LogCtx()
+
+    def emit(self, record):
+        self.ctx.log(record.levelno, record.getMessage(), record.created, record.filename, record.funcName, record.lineno)
 
 
 # log format

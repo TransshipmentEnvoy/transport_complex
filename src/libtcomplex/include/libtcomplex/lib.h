@@ -3,6 +3,8 @@
 
 namespace libtcomplex {
 int run();
+void init();
+void deinit();
 } // namespace libtcomplex
 
 #endif

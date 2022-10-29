@@ -18,7 +18,7 @@ find_package(nanobind REQUIRED)
 nanobind_add_module(
     _log
     NB_SHARED
-    log.cpp)
+    bind.cpp)
 target_link_libraries(_log PRIVATE libtcomplex::tcomplex)
 if (DEFINED DESIGNATED_RPATH)
     message(STATUS "use designated rpath ${DESIGNATED_RPATH}")
