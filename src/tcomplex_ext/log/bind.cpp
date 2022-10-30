@@ -1,7 +1,7 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/string_view.h>
 
-#include <libtcomplex/log_if.h>
+#include <libtcomplex/interface/log_if.h>
 
 using namespace libtcomplex::interface::log;
 namespace nb = nanobind;

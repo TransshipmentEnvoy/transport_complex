@@ -11,6 +11,8 @@ def main():
     log.log_init()
     log.enable_ext()
 
+    # log.enable_console()
+
     _logger.info("x")
     _logger.warning("w")
     _logger.critical("z")

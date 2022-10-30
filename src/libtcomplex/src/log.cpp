@@ -8,17 +8,16 @@
 #include <tsl/robin_map.h>
 
 namespace libtcomplex::log {
-log_type_t &ref_log_type() {
-    static log_type_t log_type = log_type_t::console_file;
-    return log_type;
-}
 
-void reset_logging() {
+void reset_logging(const std::optional<log_type_t> log_type_in) {
     static std::mutex reset_mutex;
     static tsl::robin_map<std::string, spdlog::sink_ptr> sink_registry;
     static bool thread_pool_inited = false;
+    static log_type_t log_type = log_type_t::disabled;
 
-    auto &log_type = ref_log_type();
+    if (log_type_in.has_value()) {
+        log_type = log_type_in.value();
+    }
 
     // lock
     std::scoped_lock lock(reset_mutex);

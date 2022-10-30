@@ -1,6 +1,6 @@
 #include "../log.h"
 #include <chrono>
-#include <libtcomplex/log_if.h>
+#include <libtcomplex/interface/log_if.h>
 
 namespace libtcomplex::interface::log {
 

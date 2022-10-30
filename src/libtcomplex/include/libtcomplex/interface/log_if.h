@@ -1,14 +1,19 @@
-#ifndef LIBTCOMPLEX_LOG_DEF_H
-#define LIBTCOMPLEX_LOG_DEF_H
+#ifndef LIBTCOMPLEX_INTERFACE_LOG_IF_H
+#define LIBTCOMPLEX_INTERFACE_LOG_IF_H
 
 #include <memory>
 #include <string_view>
+
+#include "../log_def.h"
 
 namespace spdlog {
 class logger;
 }; // namespace spdlog
 
 namespace libtcomplex::interface::log {
+
+using libtcomplex::log::log_type_t;
+using libtcomplex::log::reset_logging;
 
 bool check_init();
 

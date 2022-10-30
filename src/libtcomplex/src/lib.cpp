@@ -10,7 +10,7 @@
 namespace libtcomplex {
 
 int run() {
-    log::reset_logging();
+    log::reset_logging(log::log_type_t::console_file);
 
     const char *str = "hello, world";
     spdlog::info("{}!!", str);
@@ -25,14 +25,13 @@ int run() {
         std::this_thread::sleep_for(100ms);
     }
 
-    log::ref_log_type() = log::log_type_t::file_only;
-    log::reset_logging();
+    log::reset_logging(log::log_type_t::file_only);
     spdlog::info("{}!!", str);
 
     return 0;
 }
 
-void init() { log::reset_logging(); }
+void init() { log::reset_logging(log::log_type_t::file_only); }
 
 void deinit() {}
 

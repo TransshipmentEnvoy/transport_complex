@@ -130,7 +130,9 @@ class ExtHandler(logging.Handler):
         self.ctx = _log.LogCtx()
 
     def emit(self, record):
-        self.ctx.log(record.levelno, record.getMessage(), record.created, record.filename, record.funcName, record.lineno)
+        self.ctx.log(
+            record.levelno, record.getMessage(), record.created, record.filename, record.funcName, record.lineno
+        )
 
 
 # log format
