@@ -2,6 +2,7 @@
 #define LIBTCOMPLEX_LOG_DEF_H
 
 #include <optional>
+#include <string_view>
 
 namespace libtcomplex::log {
 enum struct log_type_t {
@@ -11,7 +12,14 @@ enum struct log_type_t {
     console_file,
 };
 
-void reset_logging(const std::optional<log_type_t> log_type_in = std::nullopt); // impl in log.cpp
+struct log_param_t {
+    std::optional<log_type_t> log_type;
+    std::optional<std::string_view> log_filename;
+};
+
+inline constexpr log_param_t log_param_default{std::nullopt, std::nullopt};
+
+void reset_logging(const log_param_t log_param = log_param_default); // impl in log.cpp
 
 } // namespace libtcomplex::log
 

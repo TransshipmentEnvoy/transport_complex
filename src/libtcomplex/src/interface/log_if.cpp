@@ -15,8 +15,7 @@ LogCtx::LogCtx(const std::string_view key) : key{key} { this->logger = get_logge
 
 spdlog::level::level_enum get_level_from_py(const int lvl) {
     spdlog::level::level_enum res;
-    switch (lvl)
-    {
+    switch (lvl) {
     case 50:
         res = spdlog::level::critical;
         break;
@@ -39,14 +38,14 @@ spdlog::level::level_enum get_level_from_py(const int lvl) {
     return res;
 }
 
-void LogCtx::log(const int lvl, const char *msg, double created, const char *filename,
-                 const char *funcname, const int lineno) {
+void LogCtx::log(const int lvl, const char *msg, double created, const char *filename, const char *funcname,
+                 const int lineno) {
     const spdlog::level::level_enum loglvl = get_level_from_py(lvl);
-    const std::chrono::duration<double> _ct {created};
-    const std::chrono::nanoseconds _ct_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(_ct);
-    const std::chrono::system_clock::time_point ct {_ct_ns};
-    const spdlog::source_loc src_loc{filename, lineno, funcname};
-    this->logger->log(ct, src_loc, loglvl, msg);
+    // const std::chrono::duration<double> _ct{created};
+    // const std::chrono::nanoseconds _ct_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(_ct);
+    // const std::chrono::system_clock::time_point ct{_ct_ns};
+    this->logger->log(loglvl, "<<< [{}] [{}:{}:{}] {}", created, filename, lineno,
+                      funcname, msg);
 }
 
 } // namespace libtcomplex::interface::log

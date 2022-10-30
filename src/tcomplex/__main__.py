@@ -16,6 +16,9 @@ def main():
     _logger.info("x")
     _logger.warning("w")
     _logger.critical("z")
+    log._logger.info("xx")
+    log._logger.warning("ww")
+    log._logger.critical("zz")
 
     _if.deinit()
 

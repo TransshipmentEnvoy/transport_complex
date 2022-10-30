@@ -89,14 +89,21 @@ def enable_ext(formatter=None):
     global _ext_handler
 
     _log.reset_logging()
-    _log.reset_logging(None)
-    _log.reset_logging(_log.log_type_t.console_file)
+    _log.reset_logging(_log.log_param_t(_log.log_type_t.console_file))
+    log_param = _log.log_param_t()
+    log_param.log_type = _log.log_type_t.file_only
+    log_param.log_filename = "multisink2.txt"
+    _log.reset_logging(log_param)
 
     if _ext_handler is not None:
         return
 
     _ext_handler = ExtHandler()
     _root_logger.addHandler(_ext_handler)
+
+    _logger.info("xx")
+    _logger.warning("ww")
+    _logger.critical("zz")
 
 
 def disable_ext():
@@ -134,9 +141,7 @@ class ExtHandler(logging.Handler):
         self.ctx = _log.LogCtx()
 
     def emit(self, record):
-        self.ctx.log(
-            record.levelno, record.getMessage(), record.created, record.filename, record.funcName, record.lineno
-        )
+        self.ctx.log(record.levelno, record.getMessage(), record.created, record.filename, record.funcName, record.lineno)
 
 
 # log format

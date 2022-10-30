@@ -9,18 +9,30 @@
 
 namespace libtcomplex::log {
 
-void reset_logging(const std::optional<log_type_t> log_type_in) {
+constexpr const char *console_handle_key = "console";
+constexpr const char *file_handle_key = "file";
+
+void reset_logging(const log_param_t log_param) {
     static std::mutex reset_mutex;
     static tsl::robin_map<std::string, spdlog::sink_ptr> sink_registry;
     static bool thread_pool_inited = false;
     static log_type_t log_type = log_type_t::disabled;
-
-    if (log_type_in.has_value()) {
-        log_type = log_type_in.value();
-    }
+    static std::string log_filename;
 
     // lock
     std::scoped_lock lock(reset_mutex);
+
+    // update global log_param
+    if (log_param.log_type.has_value()) {
+        log_type = log_param.log_type.value();
+    }
+    if (log_param.log_filename.has_value()) {
+        // drop existing file handler
+        sink_registry.erase(file_handle_key);
+        // update tmp_filename
+        auto tmp_filename = log_param.log_filename.value();
+        log_filename = std::string{tmp_filename.cbegin(), tmp_filename.cend()};
+    }
 
     // force all loggers to flush
     try {
@@ -60,22 +72,25 @@ void reset_logging(const std::optional<log_type_t> log_type_in) {
         }
 
         if (log_type == log_type_t::console_only || log_type == log_type_t::console_file) {
-            if (!sink_registry.contains("console")) {
+            if (!sink_registry.contains(console_handle_key)) {
                 auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
                 console_sink->set_level(spdlog::level::info);
                 console_sink->set_pattern("[multi_sink_example] [%^%l%$] %v");
-                sink_registry["console"] = console_sink;
+                sink_registry[console_handle_key] = console_sink;
             }
-            sink_vec.push_back(sink_registry.at("console"));
+            sink_vec.push_back(sink_registry.at(console_handle_key));
         }
 
         if (log_type == log_type_t::file_only || log_type == log_type_t::console_file) {
-            if (!sink_registry.contains("file")) {
-                auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("multisink.txt", true);
-                file_sink->set_level(spdlog::level::trace);
-                sink_registry["file"] = file_sink;
+            if (std::size(log_filename) > 0) {
+                if (!sink_registry.contains(file_handle_key)) {
+                    auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(log_filename, true);
+                    file_sink->set_level(spdlog::level::trace);
+                    file_sink->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%n] [%l] %v");
+                    sink_registry[file_handle_key] = file_sink;
+                }
+                sink_vec.push_back(sink_registry.at(file_handle_key));
             }
-            sink_vec.push_back(sink_registry.at("file"));
         }
 
         spdlog::set_default_logger(
