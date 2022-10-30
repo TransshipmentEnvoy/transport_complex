@@ -101,11 +101,6 @@ def enable_ext(formatter=None):
     _ext_handler = ExtHandler()
     _root_logger.addHandler(_ext_handler)
 
-    _logger.info("xx")
-    _logger.warning("ww")
-    _logger.critical("zz")
-
-
 def disable_ext():
     global _ext_handler
 

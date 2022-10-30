@@ -9,7 +9,7 @@ project(dep_fmt)
 option(DEP_FMT_VERSION "dep_fmt use version")
 
 if(NOT DEP_FMT_VERSION)
-    set(DEP_FMT_VERSION "9.1.0")
+    set(DEP_FMT_VERSION "9.0.0")
 endif()
 
 message(STATUS "[fmt] use version: ${DEP_FMT_VERSION}")
