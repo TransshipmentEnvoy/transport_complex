@@ -88,6 +88,10 @@ def disable_file(filename):
 def enable_ext(formatter=None):
     global _ext_handler
 
+    _log.reset_logging()
+    _log.reset_logging(None)
+    _log.reset_logging(_log.log_type_t.console_file)
+
     if _ext_handler is not None:
         return
 
