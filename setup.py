@@ -31,23 +31,24 @@ import nanobind
 # region ====== clib >>>
 libraries = [
     cmake_clib.CMakeClib(
+        "dep_fmt",
+        sourcedir=str(here / "src" / "buildsys" / "dep" / "fmt"),
+        targetdir=path_util.PathPrefixBuildTemp("prefix/fmt"),
+        cmake_configure_argdef={},
+    ),
+    cmake_clib.CMakeClib(
         "dep_spdlog",
         sourcedir=str(here / "src" / "buildsys" / "dep" / "spdlog"),
         targetdir=path_util.PathPrefixBuildTemp("prefix/spdlog"),
         cmake_configure_argdef={
             "DEP_SPDLOG_FETCHCONTENT": "ON",
+            "fmt_ROOT": path_util.PathPrefixBuildTemp("prefix/fmt"),
         },
     ),
     cmake_clib.CMakeClib(
         "dep_range-v3",
         sourcedir=str(here / "src" / "buildsys" / "dep" / "range-v3"),
         targetdir=path_util.PathPrefixBuildTemp("prefix/range-v3"),
-        cmake_configure_argdef={},
-    ),
-    cmake_clib.CMakeClib(
-        "dep_fmt",
-        sourcedir=str(here / "src" / "buildsys" / "dep" / "fmt"),
-        targetdir=path_util.PathPrefixBuildTemp("prefix/fmt"),
         cmake_configure_argdef={},
     ),
     cmake_clib.CMakeClib(

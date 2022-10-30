@@ -1,5 +1,3 @@
-#include <spdlog/spdlog.h>
-
 #include <chrono>
 #include <thread>
 

@@ -48,7 +48,7 @@ void LogCtx::log(const int lvl, const char *msg, double created, const char *fil
     const std::chrono::duration<double> _ct{created};
     const std::chrono::nanoseconds _ct_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(_ct);
     const std::chrono::system_clock::time_point ct{_ct_ns};
-    const std::string time_str = fmt::format("{:%Y-%m-%d %H:%M:%S.%e}", ct);
+    const std::string time_str = ::fmt::format("{:%Y-%m-%d %H:%M:%S.%e}", ct);
     this->logger->log(loglvl, "<<< [{}] [{}:{}:{}] {}", time_str, filename, lineno,
                       funcname, msg);
 }

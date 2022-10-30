@@ -21,9 +21,12 @@ if(NOT DEP_SPDLOG_FETCHCONTENT)
         GIT_REPOSITORY    "git@github.com:gabime/spdlog.git"
         GIT_TAG           "${DEP_SPDLOG_VERSION}"
         CMAKE_ARGS        "-DSPDLOG_BUILD_SHARED:BOOL=ON"
+                          "-DSPDLOG_FMT_EXTERNAL:BOOL=ON"
                           "-DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}"
+                          "-Dfmt_ROOT=${fmt_ROOT}"
     )
 else()
+    set(FETCHCONTENT_QUIET FALSE)
     include(FetchContent)
     message(STATUS "[spdlog] use FetchContent")
     FetchContent_Declare(spdlog
@@ -33,7 +36,9 @@ else()
 
     message(STATUS "[spdlog] disable soname")
     set(SPDLOG_BUILD_SHARED ON CACHE INTERNAL "")
+    set(SPDLOG_FMT_EXTERNAL ON CACHE INTERNAL "")
     set(SPDLOG_INSTALL ON CACHE INTERNAL "")
+    set(fmt_ROOT ${fmt_ROOT} CACHE INTERNAL "")
     FetchContent_MakeAvailable(spdlog)
     set_target_properties(spdlog PROPERTIES NO_SONAME True)
 endif()

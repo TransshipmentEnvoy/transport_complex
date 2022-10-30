@@ -5,7 +5,12 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 
 #include <mutex>
+
 #include <tsl/robin_map.h>
+
+#include <fmt/core.h>
+#include <fmt/format.h>
+#include <fmt/chrono.h>
 
 namespace libtcomplex::log {
 
