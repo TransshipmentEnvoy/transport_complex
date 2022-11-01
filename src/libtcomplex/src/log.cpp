@@ -8,17 +8,24 @@
 
 #include <tsl/robin_map.h>
 
+#include <fmt/chrono.h>
 #include <fmt/core.h>
 #include <fmt/format.h>
-#include <fmt/chrono.h>
 
 namespace libtcomplex::log {
 
 constexpr const char *console_handle_key = "console";
 constexpr const char *file_handle_key = "file";
 
+static std::mutex reset_mutex;
+
+formatter::condition_pattern_formater *ptr_log_formatter() {
+    static auto log_formatter = std::make_unique<formatter::condition_pattern_formater>(
+        std::make_unique<spdlog::pattern_formatter>("[%Y-%m-%d %H:%M:%S.%e] [%n] [%l] [%s:%#:%!] %v"));
+    return log_formatter.get();
+}
+
 void reset_logging(const log_param_t log_param) {
-    static std::mutex reset_mutex;
     static tsl::robin_map<std::string, spdlog::sink_ptr> sink_registry;
     static bool thread_pool_inited = false;
     static log_type_t log_type = log_type_t::disabled;
@@ -80,7 +87,8 @@ void reset_logging(const log_param_t log_param) {
             if (!sink_registry.contains(console_handle_key)) {
                 auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
                 console_sink->set_level(spdlog::level::info);
-                console_sink->set_pattern("[multi_sink_example] [%^%l%$] %v");
+                auto ptr_formatter = ptr_log_formatter();
+                console_sink->set_formatter(ptr_formatter->clone());
                 sink_registry[console_handle_key] = console_sink;
             }
             sink_vec.push_back(sink_registry.at(console_handle_key));
@@ -91,7 +99,8 @@ void reset_logging(const log_param_t log_param) {
                 if (!sink_registry.contains(file_handle_key)) {
                     auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(log_filename, true);
                     file_sink->set_level(spdlog::level::trace);
-                    file_sink->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%n] [%l] %v");
+                    auto ptr_formatter = ptr_log_formatter();
+                    file_sink->set_formatter(ptr_formatter->clone());
                     sink_registry[file_handle_key] = file_sink;
                 }
                 sink_vec.push_back(sink_registry.at(file_handle_key));
@@ -119,6 +128,7 @@ void reset_logging(const log_param_t log_param) {
 
 // get logger
 std::shared_ptr<spdlog::logger> get_logger(const std::string_view name) {
+    std::scoped_lock lock(reset_mutex);
     auto logger = spdlog::get(std::string{name});
     if (logger == nullptr) {
         auto root = spdlog::get("root");
@@ -135,4 +145,66 @@ std::shared_ptr<spdlog::logger> get_logger(const std::string_view name) {
     }
     return logger;
 }
+
+std::shared_ptr<spdlog::logger> get_logger(const std::string_view name, const std::string_view pattern) {
+    std::scoped_lock lock(reset_mutex);
+    auto logger = spdlog::get(std::string{name});
+    // clone a new formatter
+    if (logger == nullptr) {
+        auto root = spdlog::get("root");
+        if (root == nullptr) {
+            logger = nullptr;
+        } else {
+            // create a new logger using same sink with root
+            auto &sinks = root->sinks();
+            logger = std::make_shared<spdlog::async_logger>(std::string{name}, sinks.cbegin(), sinks.cend(),
+                                                            spdlog::thread_pool());
+            logger->set_level(root->level());
+            spdlog::register_logger(logger);
+            auto ptr_formatter = ptr_log_formatter();
+            auto pattern_formatter_ = std::make_unique<spdlog::pattern_formatter>(std::string{pattern});
+            ptr_formatter->add_condition(name, std::move(pattern_formatter_));
+            logger->set_formatter(ptr_formatter->clone());
+        }
+    } else {
+        auto ptr_formatter = ptr_log_formatter();
+        auto pattern_formatter_ = std::make_unique<spdlog::pattern_formatter>(std::string{pattern});
+        ptr_formatter->add_condition(name, std::move(pattern_formatter_));
+        logger->set_formatter(ptr_formatter->clone());
+    }
+    return logger;
+}
+
+namespace formatter {
+
+std::unique_ptr<spdlog::formatter> condition_pattern_formater::clone() const {
+    auto new_default = formatter_default->clone();
+    condition_pattern_formater::formatter_map new_formatter_map;
+    for (auto &it : formatter_map_) {
+        new_formatter_map.insert({it.first, std::move(it.second->clone())});
+    }
+    return std::make_unique<condition_pattern_formater>(std::move(new_default), std::move(new_formatter_map));
+}
+
+void condition_pattern_formater::format(const spdlog::details::log_msg &msg, spdlog::memory_buf_t &dest) {
+    const auto _src_name = msg.logger_name;
+    const std::string_view src_name = {_src_name.data(), _src_name.size()};
+    if (formatter_map_.contains(src_name)) {
+        const auto ptr_formatter = formatter_map_.at(src_name).get();
+        ptr_formatter->format(msg, dest);
+    } else {
+        // use default
+        formatter_default->format(msg, dest);
+    }
+}
+
+void condition_pattern_formater::add_condition(const std::string_view name, std::unique_ptr<spdlog::formatter> f) {
+    if (formatter_map_.contains(name)) {
+        formatter_map_.erase(name);
+    }
+    formatter_map_.insert({std::string{name}, std::move(f)});
+}
+
+} // namespace formatter
+
 } // namespace libtcomplex::log

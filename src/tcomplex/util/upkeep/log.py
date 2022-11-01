@@ -91,7 +91,7 @@ def enable_ext(formatter=None):
     _log.reset_logging()
     _log.reset_logging(_log.log_param_t(_log.log_type_t.console_file))
     log_param = _log.log_param_t()
-    log_param.log_type = _log.log_type_t.file_only
+    log_param.log_type = _log.log_type_t.console_file
     log_param.log_filename = "multisink2.txt"
     _log.reset_logging(log_param)
 

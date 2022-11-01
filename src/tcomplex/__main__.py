@@ -16,6 +16,8 @@ def main():
     _logger.info("x")
     _logger.warning("w")
     _logger.critical("z")
+    import time
+    time.sleep(0.1)
     log._logger.info("xx")
     log._logger.warning("ww")
     log._logger.critical("zz")
