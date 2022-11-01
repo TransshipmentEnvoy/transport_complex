@@ -58,7 +58,7 @@ void LogCtx::log(const int lvl, const char *msg, double created, const char *fil
     const auto fraction = ct - second_part;
     const auto millisecond_part = std::chrono::duration_cast<std::chrono::milliseconds>(fraction);
 
-    this->logger->log(loglvl,                                                 //
+    this->logger->log(loglvl,                                                  //
                       "[{:%Y-%m-%d %H:%M:%S}.{:0>3}] [{}] [{}] [{}:{}:{}] {}", //
                       ct, millisecond_part.count(), this->key, to_string_view(loglvl), filename, lineno, funcname, msg);
 }

@@ -14,19 +14,21 @@
 
 namespace libtcomplex::log {
 
-constexpr const char *console_handle_key = "console";
-constexpr const char *file_handle_key = "file";
+constexpr std::string_view console_handle_key = "console";
+constexpr std::string_view file_handle_key = "file";
 
 static std::mutex reset_mutex;
 
-formatter::condition_pattern_formater *ptr_log_formatter() {
+formatter::condition_pattern_formater *ptr_log_formatter() { // todo: support dynamic sink
     static auto log_formatter = std::make_unique<formatter::condition_pattern_formater>(
         std::make_unique<spdlog::pattern_formatter>("[%Y-%m-%d %H:%M:%S.%e] [%n] [%l] [%s:%#:%!] %v"));
     return log_formatter.get();
 }
 
-void reset_logging(const log_param_t log_param) {
-    static tsl::robin_map<std::string, spdlog::sink_ptr> sink_registry;
+void reset_logging(const log_param_t log_param) { // todo: support dynamic sink
+    using sink_map = tsl::robin_map<std::string, spdlog::sink_ptr, std::hash<std::string_view>, std::equal_to<>>;
+
+    static sink_map sink_registry;
     static bool thread_pool_inited = false;
     static log_type_t log_type = log_type_t::disabled;
     static std::string log_filename;
@@ -89,7 +91,7 @@ void reset_logging(const log_param_t log_param) {
                 console_sink->set_level(spdlog::level::info);
                 auto ptr_formatter = ptr_log_formatter();
                 console_sink->set_formatter(ptr_formatter->clone());
-                sink_registry[console_handle_key] = console_sink;
+                sink_registry[std::string{console_handle_key}] = console_sink;
             }
             sink_vec.push_back(sink_registry.at(console_handle_key));
         }
@@ -101,7 +103,7 @@ void reset_logging(const log_param_t log_param) {
                     file_sink->set_level(spdlog::level::trace);
                     auto ptr_formatter = ptr_log_formatter();
                     file_sink->set_formatter(ptr_formatter->clone());
-                    sink_registry[file_handle_key] = file_sink;
+                    sink_registry[std::string{file_handle_key}] = file_sink;
                 }
                 sink_vec.push_back(sink_registry.at(file_handle_key));
             }
