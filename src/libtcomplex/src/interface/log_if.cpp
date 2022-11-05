@@ -17,7 +17,7 @@ bool check_init() {
 
 LogCtx::LogCtx(const std::string_view key) : key{key} {
     SPDLOG_INFO("x");
-    auto f_console = std::make_unique<spdlog::pattern_formatter>("%v");
+    auto f_console = std::make_unique<formatter::group_color_formatter>(3);
     auto f_file = std::make_unique<spdlog::pattern_formatter>("%v");
     sink_formatter_map fmap;
     fmap.insert({std::string{console_sink_key}, std::move(f_console)});

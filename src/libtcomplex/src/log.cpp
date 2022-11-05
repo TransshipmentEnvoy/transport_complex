@@ -1,12 +1,15 @@
 #include "log.h"
 
 #include <spdlog/async.h>
+#include <spdlog/details/fmt_helper.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
 #include <mutex>
 #include <range/v3/range/conversion.hpp>
+#include <range/v3/view/enumerate.hpp>
 #include <range/v3/view/map.hpp>
+#include <range/v3/view/subrange.hpp>
 
 #include <tsl/robin_map.h>
 
@@ -311,6 +314,56 @@ std::unique_ptr<condition_pattern_formatter> condition_pattern_formatter::exact_
         new_formatter_map.insert({it.first, std::move(it.second->clone())});
     }
     return std::make_unique<condition_pattern_formatter>(std::move(new_default), std::move(new_formatter_map));
+}
+
+std::unique_ptr<spdlog::formatter> group_color_formatter::clone() const { return this->exact_clone(); }
+
+void group_color_formatter::format(const spdlog::details::log_msg &msg, spdlog::memory_buf_t &dest) {
+    const auto payload = msg.payload;
+    // scan and fill in the colored indexes
+    size_t group_count = 0;
+    size_t in_group = false;
+    bool success = true;
+    size_t beg = 0, end = 0;
+
+    // iterate and mark
+    for (auto [id, ch] : ranges::subrange(payload.begin(), payload.end()) | ranges::views::enumerate) {
+        if (ch == '[') {
+            if (in_group) {
+                success = false;
+                break;
+            } else {
+                in_group = true;
+                group_count += 1;
+                if (group_count == group_id) {
+                    beg = id;
+                }
+            }
+        } else if (ch == ']') {
+            if (in_group) {
+                in_group = false;
+                if (group_count == group_id) {
+                    end = id;
+                    break;
+                }
+            } else {
+                success = false;
+                break;
+            }
+        }
+    }
+    if (success) {
+        msg.color_range_start = beg;
+        msg.color_range_end = end;
+    }
+
+    // append to dest
+    spdlog::details::fmt_helper::append_string_view(payload, dest);
+    spdlog::details::fmt_helper::append_string_view(eol_, dest);
+}
+
+std::unique_ptr<group_color_formatter> group_color_formatter::exact_clone() const {
+    return std::make_unique<group_color_formatter>(this->group_id);
 }
 
 } // namespace formatter

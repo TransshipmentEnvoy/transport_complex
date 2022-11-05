@@ -117,7 +117,7 @@ public:
     condition_pattern_formatter(const condition_pattern_formatter &other) = delete;
     condition_pattern_formatter &operator=(const condition_pattern_formatter &other) = delete;
 
-    std::unique_ptr<formatter> clone() const override;
+    std::unique_ptr<spdlog::formatter> clone() const override;
     void format(const spdlog::details::log_msg &msg, spdlog::memory_buf_t &dest) override;
 
     void add_condition(const std::string_view name, std::unique_ptr<spdlog::formatter> f);
@@ -130,17 +130,18 @@ private:
 
 class group_color_formatter final : public spdlog::formatter {
 public:
-    explicit group_color_formatter(const size_t gid) : group_id(gid){};
+    explicit group_color_formatter(const size_t gid) : group_id(gid), eol_(spdlog::details::os::default_eol){};
 
     group_color_formatter(const group_color_formatter &other) = delete;
     group_color_formatter &operator=(const group_color_formatter &other) = delete;
 
-    std::unique_ptr<formatter> clone() const override;
+    std::unique_ptr<spdlog::formatter> clone() const override;
     void format(const spdlog::details::log_msg &msg, spdlog::memory_buf_t &dest) override;
     std::unique_ptr<group_color_formatter> exact_clone() const;
 
 private:
     size_t group_id;
+    std::string eol_;
 };
 
 } // namespace formatter
