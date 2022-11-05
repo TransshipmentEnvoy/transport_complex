@@ -42,7 +42,7 @@ void reset_logging(const log_param_t log_param) {
     }
     if (log_param.log_filename.has_value()) {
         // uninstall sink
-        sink_registry_.uninstall_sink(file_sink_key);
+        sink_registry_.wipe_sink(file_sink_key);
         // update tmp_filename
         auto tmp_filename = log_param.log_filename.value();
         log_filename = std::string{tmp_filename.cbegin(), tmp_filename.cend()};
@@ -81,14 +81,12 @@ void reset_logging(const log_param_t log_param) {
 
     // setup logging!
     try {
-        sink_registry_.reg_default(log_type, log_filename);
+        sink_registry_.reg_default(log_filename);
     } catch (const spdlog::spdlog_ex &ex) {
         fprintf(stderr, "error! %s\n", ex.what());
     }
 
-    // going internal! (waiting for refactor)
-    // for each regged sink, search if has installed sink
-    // if not, use init fn create a new one and set with installed formatter
+    //
     std::vector<spdlog::sink_ptr> sink_vec;
     try {
         if (!thread_pool_inited) {
@@ -96,7 +94,7 @@ void reset_logging(const log_param_t log_param) {
             thread_pool_inited = true;
         }
 
-        sink_registry_.upkeep();
+        sink_registry_.upkeep_default(log_type);
 
         sink_vec = sink_registry_.sink_items() | ranges::views::values | ranges::to<std::vector>;
 
@@ -125,43 +123,79 @@ sink_registry::sink_registry() {
         std::make_unique<spdlog::pattern_formatter>("[%Y-%m-%d %H:%M:%S.%e] [%n] [%l] [%s:%#:%!] %v")));
 }
 
-void sink_registry::reg_default(const log_type_t log_type, const std::string_view log_filename) {
-    // reg default sink if not regged
-    if (log_type == log_type_t::console_only || log_type == log_type_t::console_file) {
-        if (!this->check_sink_reg(console_sink_key)) {
-            this->reg_sink(console_sink_key, []() {
-                auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-                console_sink->set_level(spdlog::level::info);
-                return console_sink;
-            });
-        }
-    } else {
-        if (this->check_sink_reg(console_sink_key)) {
-            this->unreg_sink(console_sink_key);
-        }
+// buf sink
+void sink_registry::enable_sink(const std::string_view sink_key) {
+    if (!this->check_sink_reg(sink_key)) {
+        return;
     }
 
-    if ((log_type == log_type_t::file_only || log_type == log_type_t::console_file) && (std::size(log_filename) > 0)) {
-        if (!this->check_sink_reg(file_sink_key)) {
-            const std::string log_filename_curr{log_filename};
-            this->reg_sink(console_sink_key, [log_filename_curr]() -> spdlog::sink_ptr {
-                try {
-                    if (std::size(log_filename_curr) > 0) {
-                        auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(log_filename_curr, true);
-                        file_sink->set_level(spdlog::level::trace);
-                        return file_sink;
-                    } else {
-                        return nullptr;
-                    }
-                } catch (const spdlog::spdlog_ex &ex) {
+    if (!this->check_sink_buf(sink_key)) {
+        auto &sink_init_curr = this->sink_reg_map_.at(sink_key);
+        auto sink_curr = sink_init_curr();
+        if (sink_curr == nullptr) {
+            return;
+        }
+
+        // set formatter
+        if (!this->check_sink_formatter(sink_key)) {
+            this->sink_formatter_map_.insert({std::string{sink_key}, this->default_formatter->exact_clone()});
+            sink_curr->set_formatter(this->default_formatter->clone());
+        } else {
+            auto formatter_curr = this->sink_formatter_map_.at(sink_key).get();
+            sink_curr->set_formatter(formatter_curr->clone());
+        }
+
+        // store in buf
+        this->sink_buf_map_.insert({std::string{sink_key}, sink_curr});
+    }
+
+    if (!this->check_sink_install(sink_key)) {
+        this->sink_map_.insert({std::string{sink_key}, this->sink_buf_map_.at(sink_key)});
+    }
+}
+
+void sink_registry::disable_sink(const std::string_view sink_key) {
+    if (this->check_sink_install(sink_key)) {
+        this->sink_map_.erase(sink_key);
+    }
+}
+
+void sink_registry::wipe_sink(const std::string_view sink_key) {
+    if (this->check_sink_install(sink_key)) {
+        this->sink_map_.erase(sink_key);
+    }
+
+    if (this->check_sink_buf(sink_key)) {
+        this->sink_buf_map_.erase(sink_key);
+    }
+}
+
+// default logging managed by registry
+void sink_registry::reg_default(const std::string_view log_filename) {
+    // reg default sink if not regged
+    if (!this->check_sink_reg(console_sink_key)) {
+        this->reg_sink(console_sink_key, []() {
+            auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+            console_sink->set_level(spdlog::level::info);
+            return console_sink;
+        });
+    }
+
+    if (!this->check_sink_reg(file_sink_key)) {
+        const std::string log_filename_curr{log_filename};
+        this->reg_sink(file_sink_key, [log_filename_curr]() -> spdlog::sink_ptr {
+            try {
+                if (std::size(log_filename_curr) > 0) {
+                    auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(log_filename_curr, true);
+                    file_sink->set_level(spdlog::level::trace);
+                    return file_sink;
+                } else {
                     return nullptr;
                 }
-            });
-        }
-    } else {
-        if (this->check_sink_reg(file_sink_key)) {
-            this->unreg_sink(file_sink_key);
-        }
+            } catch (const spdlog::spdlog_ex &ex) {
+                return nullptr;
+            }
+        });
     }
 
     // reg default formatter if not regged
@@ -179,48 +213,17 @@ void sink_registry::reg_default(const log_type_t log_type, const std::string_vie
     }
 }
 
-void sink_registry::upkeep() {
-    // get a const ref of current installed sink & formatter
-    const auto &sink_map_curr = this->sink_map_;
-    auto &sink_formatter_map_curr = this->sink_formatter_map_;
-    sink_registry::sink_map new_sink_map;
-
-    for (const auto iter_pair : this->sink_init_fn_map_) {
-        const std::string_view sink_key = iter_pair.first;
-        // there will be 3 valid condition
-        // active sink + active formatter
-        // no sink + active formatter
-        // no sink + no formatter
-
-        // install sink!
-        if (sink_map_curr.contains(sink_key)) {
-            new_sink_map.insert({std::string{sink_key}, sink_map_curr.at(sink_key)});
-        } else {
-            auto sink_init_curr = iter_pair.second;
-            auto new_sink = sink_init_curr();
-            if (new_sink != nullptr) {
-                if (sink_formatter_map_curr.contains(sink_key)) {
-                    // install existing formatter (left behind from past regged sink?)
-                    auto _curr_formatter = sink_formatter_map_curr.at(sink_key).get();
-                    new_sink->set_formatter(_curr_formatter->clone());
-                } else {
-                    // use default formatter
-                    sink_formatter_map_curr.insert({std::string{sink_key}, default_formatter->exact_clone()});
-                    new_sink->set_formatter(default_formatter->clone());
-                }
-                new_sink_map.insert({std::string{sink_key}, new_sink});
-            } else {
-                // skip build this sink, but record formatter
-                if (!sink_formatter_map_curr.contains(sink_key)) {
-                    // use default formatter
-                    sink_formatter_map_curr.insert({std::string{sink_key}, default_formatter->exact_clone()});
-                }
-            }
-        }
+void sink_registry::upkeep_default(const log_type_t log_type) {
+    if ((log_type == log_type_t::console_only) || (log_type == log_type_t::console_file)) {
+        this->enable_sink(console_sink_key);
+    } else {
+        this->disable_sink(console_sink_key);
     }
-
-    // move assign to sink_registry
-    this->sink_map_ = std::move(new_sink_map);
+    if ((log_type == log_type_t::file_only) || (log_type == log_type_t::console_file)) {
+        this->enable_sink(file_sink_key);
+    } else {
+        this->disable_sink(file_sink_key);
+    }
 }
 
 // get logger
@@ -268,8 +271,8 @@ std::shared_ptr<spdlog::logger> get_logger(const std::string_view name, sink_for
             auto mode_f = fmap.at(sink_key).get();
             target_f->add_condition(name, mode_f->clone());
             // override sink formatter
-            if (sink_registry_.check_sink_install(sink_key)) {
-                auto sink_p = sink_registry_.get_sink(sink_key);
+            if (sink_registry_.check_sink_buf(sink_key)) {
+                auto sink_p = sink_registry_.get_buf_sink(sink_key);
                 sink_p->set_formatter(target_f->clone());
             }
         }

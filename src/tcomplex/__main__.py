@@ -21,6 +21,11 @@ def main():
     log._logger.info("xx")
     log._logger.warning("ww")
     log._logger.critical("zz")
+    log._log.reset_logging(log._log.log_param_t(log._log.log_type_t.file_only))
+    log._logger.critical("zz")
+    log._log.reset_logging(log._log.log_param_t(log._log.log_type_t.console_file))
+    log._logger.critical("zzz")
+    log._logger.info("xxx")
 
     _if.deinit()
 

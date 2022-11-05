@@ -33,34 +33,24 @@ constexpr std::string_view file_sink_key = "file";
 
 class sink_registry final {
 public:
-    using sink_map = tsl::robin_map<std::string, spdlog::sink_ptr, std::hash<std::string_view>, std::equal_to<>>;
+    using sink_init_fn = std::function<spdlog::sink_ptr()>;
+    using sink_init_fn_map = tsl::robin_map<std::string, sink_init_fn, std::hash<std::string_view>, std::equal_to<>>;
     using sink_condition_formatter_map =
         tsl::robin_map<std::string, std::unique_ptr<formatter::condition_pattern_formatter>,
                        std::hash<std::string_view>, std::equal_to<>>;
-    using sink_init_fn = std::function<spdlog::sink_ptr()>;
-    using sink_init_fn_map = tsl::robin_map<std::string, sink_init_fn, std::hash<std::string_view>, std::equal_to<>>;
+    using sink_map = tsl::robin_map<std::string, spdlog::sink_ptr, std::hash<std::string_view>, std::equal_to<>>;
 
 public:
     explicit sink_registry();
 
-    inline bool check_sink_reg(const std::string_view sink_key) const {
-        return this->sink_init_fn_map_.contains(sink_key);
-    }
+    // reg
+    inline bool check_sink_reg(const std::string_view sink_key) const { return this->sink_reg_map_.contains(sink_key); }
     inline void reg_sink(const std::string_view sink_key, sink_init_fn &&init_fn) {
-        this->sink_init_fn_map_.insert({std::string{sink_key}, std::move(init_fn)});
+        this->sink_reg_map_.insert({std::string{sink_key}, std::move(init_fn)});
     }
-    inline void unreg_sink(const std::string_view sink_key) { this->sink_init_fn_map_.erase(sink_key); }
+    inline void unreg_sink(const std::string_view sink_key) { this->sink_reg_map_.erase(sink_key); }
 
-    inline bool check_sink_install(const std::string_view sink_key) const { return this->sink_map_.contains(sink_key); }
-    inline void install_sink(const std::string_view sink_key, const spdlog::sink_ptr sptr) {
-        this->sink_map_.insert({std::string{sink_key}, sptr});
-    }
-    inline void uninstall_sink(const std::string_view sink_key) { this->sink_map_.erase(sink_key); }
-    inline spdlog::sink_ptr get_sink(const std::string_view sink_key) {
-        return (check_sink_install(sink_key)) ? this->sink_map_.at(sink_key) : nullptr;
-    }
-    inline const sink_map &sink_items() const { return sink_map_; }
-
+    // formatter
     inline bool check_sink_formatter(const std::string_view sink_key) const {
         return this->sink_formatter_map_.contains(sink_key);
     }
@@ -73,16 +63,33 @@ public:
         return this->sink_formatter_map_.at(sink_key).get();
     }
 
+    // buf sink
+    inline bool check_sink_buf(const std::string_view sink_key) const { return this->sink_buf_map_.contains(sink_key); }
+    inline spdlog::sink_ptr get_buf_sink(const std::string_view sink_key) {
+        return (check_sink_install(sink_key)) ? this->sink_map_.at(sink_key) : nullptr;
+    }
+    void enable_sink(const std::string_view sink_key);
+    void disable_sink(const std::string_view sink_key);
+    void wipe_sink(const std::string_view sink_key);
+
+    // active sink
+    inline bool check_sink_install(const std::string_view sink_key) const { return this->sink_map_.contains(sink_key); }
+    inline spdlog::sink_ptr get_sink(const std::string_view sink_key) {
+        return (check_sink_install(sink_key)) ? this->sink_map_.at(sink_key) : nullptr;
+    }
+    inline const sink_map &sink_items() const { return sink_map_; }
+
     // default logging
-    void reg_default(const log_type_t log_type, const std::string_view log_filename);
-    void upkeep();
+    void reg_default(const std::string_view log_filename);
+    void upkeep_default(const log_type_t log_type);
 
 private:
     std::unique_ptr<formatter::condition_pattern_formatter> default_formatter;
 
-    sink_map sink_map_;                               // store active sinks
+    sink_init_fn_map sink_reg_map_;                   // store logic used in reset_logging
     sink_condition_formatter_map sink_formatter_map_; // store active sink formatters
-    sink_init_fn_map sink_init_fn_map_;               // store logic used in reset_logging
+    sink_map sink_buf_map_;                           // store all sinks once been created
+    sink_map sink_map_;                               // store active sinks
 };
 
 using sink_formatter_map =
