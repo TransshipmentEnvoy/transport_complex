@@ -210,5 +210,8 @@ def ask_for_confirm():
 
 
 # wrap module
-def reset_logging():
-    pass
+log_type = _log.log_type_t
+
+
+def reset_logging(log_type=None, log_filename=None):
+    _log.reset_logging(_log.log_param_t(log_type=log_type, log_filename=log_filename))
