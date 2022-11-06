@@ -6,6 +6,8 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 
 #include <mutex>
+#include <thread>
+
 #include <range/v3/range/conversion.hpp>
 #include <range/v3/view/enumerate.hpp>
 #include <range/v3/view/map.hpp>
@@ -54,11 +56,7 @@ void reset_logging(const log_param_t log_param) {
     }
 
     // force all loggers to flush
-    try {
-        spdlog::apply_all([](const std::shared_ptr<spdlog::logger> l) { l->flush(); });
-    } catch (const spdlog::spdlog_ex &ex) {
-        fprintf(stderr, "error! %s\n", ex.what());
-    }
+    flush_logging();
 
     // clear all loggers sinks
     try {
@@ -127,6 +125,28 @@ void reset_logging(const log_param_t log_param) {
     }
 }
 
+// flush logging
+void flush_logging() {
+    // force all loggers to flush
+    try {
+        spdlog::apply_all([](const std::shared_ptr<spdlog::logger> l) { l->flush(); });
+    } catch (const spdlog::spdlog_ex &ex) {
+        fprintf(stderr, "error! %s\n", ex.what());
+    }
+
+    // wait until threadpool is empty
+    try {
+        auto spdlog_tp = spdlog::thread_pool();
+        if (spdlog_tp != nullptr) {
+            while (spdlog_tp->queue_size() != 0) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(FLUSH_WAIT_SLICE));
+            }
+        }
+    } catch (const spdlog::spdlog_ex &ex) {
+        fprintf(stderr, "error! %s\n", ex.what());
+    }
+}
+
 // sink registry
 sink_registry::sink_registry() {
     default_formatter = std::move(std::make_unique<formatter::condition_pattern_formatter>(
@@ -171,9 +191,7 @@ void sink_registry::disable_sink(const std::string_view sink_key) {
 }
 
 void sink_registry::wipe_sink(const std::string_view sink_key) {
-    if (this->check_sink_install(sink_key)) {
-        this->sink_map_.erase(sink_key);
-    }
+    this->disable_sink(sink_key);
 
     if (this->check_sink_buf(sink_key)) {
         this->sink_buf_map_.erase(sink_key);

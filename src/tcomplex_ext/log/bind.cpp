@@ -17,16 +17,17 @@ NB_MODULE(_log, m) {
     nb::class_<log_param_t>(m, "log_param_t")
         .def(nb::init<std::optional<log_type_t>, std::optional<std::string>>(), //
              nb::arg("log_type") = nb::none(),
-             nb::arg("log_filename") = nb::none())       //
+             nb::arg("log_filename") = nb::none())         //
         .def_readwrite("log_type", &log_param_t::log_type) //
         .def_readwrite("log_filename", &log_param_t::log_filename);
 
     m.def("reset_logging", reset_logging, nb::arg("log_param") = log_param_default);
+    m.def("flush_logging", flush_logging);
 
     m.def("check_init", check_init);
 
     nb::class_<LogCtx>(m, "LogCtx")
-        .def(nb::init<>())                       //
+        .def(nb::init<>())                  //
         .def(nb::init<const std::string>()) //
         .def("log", &LogCtx::log);
 }

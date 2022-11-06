@@ -21,6 +21,7 @@ struct log_param_t {
 static const log_param_t log_param_default{std::nullopt, std::nullopt};
 
 void reset_logging(const log_param_t log_param = log_param_default); // impl in log.cpp
+void flush_logging(); //impl in log.cpp
 
 } // namespace libtcomplex::log
 

@@ -17,6 +17,7 @@ using libtcomplex::log::log_param_default;
 using libtcomplex::log::log_param_t;
 using libtcomplex::log::log_type_t;
 using libtcomplex::log::reset_logging;
+using libtcomplex::log::flush_logging;
 
 bool check_init();
 

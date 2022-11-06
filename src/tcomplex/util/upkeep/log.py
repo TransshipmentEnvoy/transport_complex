@@ -135,6 +135,11 @@ class ExtHandler(logging.Handler):
             record.levelno, record.getMessage(), record.created, record.filename, record.funcName, record.lineno
         )
 
+    def flush(self):
+        self.acquire()
+        _log.flush_logging()
+        self.release()
+
 
 # log format
 class Formatter(logging.Formatter):

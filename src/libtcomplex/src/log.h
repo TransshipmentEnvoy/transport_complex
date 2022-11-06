@@ -19,10 +19,12 @@
 namespace libtcomplex::log {
 enum struct log_type_t;                          // forward declare
 void reset_logging(const log_param_t log_param); // forward declare
+void flush_logging();                            // forward declare
 
 constexpr size_t ASYNC_QUEUE_SIZE = 8192;
 constexpr size_t ASYNC_THREAD_COUNT = 2;
 constexpr std::string_view ROOT_LOGGER_NAME = "root";
+constexpr size_t FLUSH_WAIT_SLICE = 5;
 
 namespace formatter {
 class condition_pattern_formatter;
