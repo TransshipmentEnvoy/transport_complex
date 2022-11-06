@@ -60,6 +60,13 @@ void reset_logging(const log_param_t log_param) {
         fprintf(stderr, "error! %s\n", ex.what());
     }
 
+    // clear all loggers sinks
+    try {
+        spdlog::apply_all([](const std::shared_ptr<spdlog::logger> l) { l->sinks().clear(); });
+    } catch (const spdlog::spdlog_ex &ex) {
+        fprintf(stderr, "error! %s\n", ex.what());
+    }
+
     // remove default logger
     try {
         spdlog::set_default_logger(nullptr);
@@ -336,7 +343,7 @@ void group_color_formatter::format(const spdlog::details::log_msg &msg, spdlog::
                 in_group = true;
                 group_count += 1;
                 if (group_count == group_id) {
-                    beg = id;
+                    beg = id + 1;
                 }
             }
         } else if (ch == ']') {

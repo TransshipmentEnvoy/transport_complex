@@ -1,6 +1,6 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/optional.h>
-#include <nanobind/stl/string_view.h>
+#include <nanobind/stl/string.h>
 
 #include <libtcomplex/interface/log_if.h>
 
@@ -15,9 +15,9 @@ NB_MODULE(_log, m) {
         .value("console_file", log_type_t::console_file);
 
     nb::class_<log_param_t>(m, "log_param_t")
-        .def(nb::init<>())                                 //
-        .def(nb::init<log_type_t>())                       //
-        .def(nb::init<log_type_t, std::string_view>())     //
+        .def(nb::init<std::optional<log_type_t>, std::optional<std::string>>(), //
+             nb::arg("log_type") = nb::none(),
+             nb::arg("log_filename") = nb::none())       //
         .def_readwrite("log_type", &log_param_t::log_type) //
         .def_readwrite("log_filename", &log_param_t::log_filename);
 
@@ -27,6 +27,6 @@ NB_MODULE(_log, m) {
 
     nb::class_<LogCtx>(m, "LogCtx")
         .def(nb::init<>())                       //
-        .def(nb::init<const std::string_view>()) //
+        .def(nb::init<const std::string>()) //
         .def("log", &LogCtx::log);
 }

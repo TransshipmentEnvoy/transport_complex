@@ -2,6 +2,7 @@
 #define LIBTCOMPLEX_INTERFACE_LOG_IF_H
 
 #include <memory>
+#include <string>
 #include <string_view>
 
 #include "../log_def.h"
@@ -21,7 +22,7 @@ bool check_init();
 
 struct LogCtx {
 public:
-    LogCtx(const std::string_view key = "python");
+    LogCtx(const std::string key = "python");
     void set_level();
     void set_format();
     void log(const int lvl, const char *msg, double created, const char *filename, const char *funcname, int lineno);
