@@ -106,9 +106,11 @@ void reset_logging(const log_param_t log_param) {
 
         sink_vec = sink_registry_.sink_items() | ranges::views::values | ranges::to<std::vector>;
 
-        spdlog::set_default_logger(
+        auto root_logger =
             std::make_shared<spdlog::async_logger>(std::string{ROOT_LOGGER_NAME}, sink_vec.cbegin(), sink_vec.cend(),
-                                                   spdlog::thread_pool(), spdlog::async_overflow_policy::block));
+                                                   spdlog::thread_pool(), spdlog::async_overflow_policy::block);
+        root_logger->set_level(spdlog::level::trace);
+        spdlog::set_default_logger(root_logger);
 
     } catch (const spdlog::spdlog_ex &ex) {
         fprintf(stderr, "error! %s\n", ex.what());

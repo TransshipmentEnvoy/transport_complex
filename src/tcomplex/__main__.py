@@ -30,7 +30,7 @@ def main():
     log._log.reset_logging(log._log.log_param_t(log._log.log_type_t.file_only))
 
     for i in range(10):
-        log._logger.info("zz %s", i)
+        log._logger.debug("zz %s", i)
 
     # for h in log._logger.handlers:
     #     h.flush()
