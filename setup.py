@@ -99,6 +99,15 @@ ext_modules = [
             "DESIGNATED_RPATH": rpath_util.compute_rpath("tcomplex.util.upkeep._log", MAIN_LIB_TARGET),
         },
     ),
+    cmake_extension.CMakeExtension(
+        "tcomplex.util.upkeep._opt",
+        sourcedir=str(here / "src" / "tcomplex_ext" / "opt"),
+        cmake_configure_argdef={
+            "nanobind_ROOT": nanobind.cmake_dir(),
+            "libtcomplex_ROOT": path_util.PathPrefixBuildLib("tcomplex/lib/libtcomplex"),
+            "DESIGNATED_RPATH": rpath_util.compute_rpath("tcomplex.util.upkeep._opt", MAIN_LIB_TARGET),
+        },
+    ),
 ]
 # endregion === ext <<<
 
