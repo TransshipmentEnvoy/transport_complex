@@ -56,9 +56,11 @@ void LogCtx::log(const int lvl, const char *msg, double created, const char *fil
     using spdlog::level::to_string_view;
 
     const spdlog::level::level_enum loglvl = get_level_from_py(lvl);
+
+    using time_point = std::chrono::system_clock::time_point;
     const std::chrono::duration<double> _ct{created};
-    const std::chrono::nanoseconds _ct_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(_ct);
-    const std::chrono::system_clock::time_point ct{_ct_ns};
+    const auto _ct_ns = std::chrono::duration_cast<time_point::duration>(_ct);
+    const time_point ct{_ct_ns};
     const auto second_part = std::chrono::time_point_cast<std::chrono::seconds>(ct);
     const auto fraction = ct - second_part;
     const auto millisecond_part = std::chrono::duration_cast<std::chrono::milliseconds>(fraction);
